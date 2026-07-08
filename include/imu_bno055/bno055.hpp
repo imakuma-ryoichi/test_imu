@@ -43,7 +43,7 @@ public:
   }
 
 
-  if (!setOprMode(BNO055Mode::NDOF)) {
+  if (!setOprMode(BNO055Mode::NDOF)) {//センサーをNDOFmodeにする
     std::cerr << "OPR_MODE failed" << std::endl;
     close(fd_);
     return false;
@@ -64,14 +64,22 @@ public:
 
   
 
-  constexpr uint8_t to_u8(BNO055Mode reg)
+  constexpr uint8_t to_u8(BNO055Mode mode)
+  {
+    return static_cast<uint8_t>(mode);
+  }
+
+
+  constexpr uint8_t to_u8(BNO055Reg reg)
   {
     return static_cast<uint8_t>(reg);
   }
 
+
+
   bool expectChipID()
   {
-    return readReg(to_u8(BNO055Mode::CHIP_ID)) == EXPECT_CHIP_ID;
+    return readReg(to_u8(BNO055Reg::CHIP_ID)) == EXPECT_CHIP_ID;
   }// 後でデータシート見る
  /* 
   void fetchData(int parameter) {
@@ -83,13 +91,13 @@ public:
 */
 private:
 
-  bool writeReg(int writeAdress, uint8_t value) 
+  bool writeReg(uint8_t reg, uint8_t value) 
   {
     ssize_t ret;
 
     std::array<uint8_t, 2> buf;
 
-    buf[0] = writeAdress;
+    buf[0] = reg;
     buf[1] = value;
 
     ret = write (fd_, buf.data(), 2);
@@ -137,7 +145,7 @@ private:
   bool setOprMode(BNO055Mode mode)
   {
     return writeReg(
-        OPR_MODE,
+        to_u8(BNO055Reg::OPR_MODE),
         static_cast<uint8_t>(mode)
     );
   }
