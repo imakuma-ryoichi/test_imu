@@ -1,0 +1,35 @@
+# Build artifacts
+build/
+install/
+log/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# VSCode
+.vscode/
+
+# CLion
+.idea/
+
+# Vim
+*.swp
+*.swo
+
+# Backup files
+*~
+
+# Python
+__pycache__/
+*.pyc
+
+# Compiled files
+*.o
+*.so
+*.a
+
+# Temporary files
+*.tmp
