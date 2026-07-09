@@ -27,7 +27,7 @@ enum class BNO055Unit : uint8_t {
   ACC_UNIT_METER_PER_SECOND_PER_SECOND = 0,
   ACC_UNIT_MG = 1,
   
-}
+};
 
 
 
@@ -90,3 +90,10 @@ enum class BNO055Reg : uint8_t {
 
 //角速度、加速度
 
+namespace {
+
+constexpr uint8_t ACC_UNIT_MASK = 0x01;
+constexpr uint8_t GYR_UNIT_MASK = 0x02;
+constexpr uint8_t EUL_UNIT_MASK = 0x04;
+
+}

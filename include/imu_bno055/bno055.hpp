@@ -43,7 +43,8 @@ public:
   }
 
   if(!setUnit()) {
-    perror("SET UNIT failed");
+    std::cerr << "SET UNIT failed" << std::endl;
+    close(fd_);
     return false;
   }
 
@@ -54,7 +55,7 @@ public:
     return false;
   }
   
-  std::this_thread::sleep_for(std::chrono::milliseconds(20)); 
+  std::this_thread::sleep_for(std::chrono::milliseconds(100)); 
   
   return true;
 
@@ -69,25 +70,25 @@ public:
 
   
 //build通ったらテンプレートにする
-  constexpr uint8_t toUnit8(BNO055Mode mode)
+  constexpr uint8_t toUint8(BNO055Mode mode)
   {
     return static_cast<uint8_t>(mode);
   }
 
 
-  constexpr uint8_t toUnit8(BNO055Reg reg)
+  constexpr uint8_t toUint8(BNO055Reg reg)
   {
     return static_cast<uint8_t>(reg);
   }
 
-  constexpr uint8_t toUnit8(BNO055Uint uint) 
+  constexpr uint8_t toUint8(BNO055Unit unit) 
   {
-    return static_cast<uint8_t>(uint);
+    return static_cast<uint8_t>(unit);
   }
 
   bool expectChipID()
   {
-    return readReg(toUnit8(BNO055Reg::CHIP_ID)) == EXPECT_CHIP_ID;
+    return readReg(toUint8(BNO055Reg::CHIP_ID)) == EXPECT_CHIP_ID;
   }// 後でデータシート見る
  /* 
   void fetchData(int parameter) {
@@ -158,46 +159,18 @@ private:
   bool setOprMode(BNO055Mode mode)
   {
     return writeReg(
-        toUnit8(BNO055Reg::OPR_MODE),
+        toUint8(BNO055Reg::OPR_MODE),
         static_cast<uint8_t>(mode)
     );
   }
 
   int16_t readInt16(BNO055Reg lsb_leg);
 
-  bool writeReg(uint8_t reg, uint8_t value);
+  bool expectSetUnit();//そのうちinitに追加
 
-  bool setUnit() 
-  {
-    uint8_t unit = toUnit();
-
-    return writeReg(toUnit8(BNO055Reg::UNIT_SEL), unit);
-
-  }
-
-  bool expectSetUnit()
-  {
-    uint8_t current = readReg(toUnit8(BNO055Reg::UNIT_SEL));
-    uint8_t expected = toUnit();
-
-    uint8_t mask =
-        ACC_UNIT_MASK |
-        GYR_UNIT_MASK |
-        EUL_UNIT_MASK;
-
-    return ((current & mask) == (expected & mask));
-
-  }
-
-  uint8_t toUnit()
-  {
-    return 
-      toUnit8(BNO055Unit::EUL_UNIT_RADIANS) |
-      toUnit8(BNO055Unit::GYR_UNIT_DPS) |
-      toUnit8(BNO055Unit::ACC_UNIT_METER_PER_SECOND_PER_SECOND);
-    
-  }
-
+  bool setUnit();
+  
+  uint8_t toUnit();
 };
 
 

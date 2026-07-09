@@ -27,21 +27,26 @@ int main()
 
   }
 
-  bool BNO055::expectSetUnit() 
+  bool BNO055::expectSetUnit()
   {
-        toUint8(EUL_UNIT_MASK);
+    uint8_t current = readReg(toUint8(BNO055Reg::UNIT_SEL));
+    uint8_t expected = toUnit();
 
-    return ((current & mask) == expected);
+    uint8_t mask =
+        ACC_UNIT_MASK |
+        GYR_UNIT_MASK |
+        EUL_UNIT_MASK;
+
+    return ((current & mask) == (expected & mask));
 
   }
 
   uint8_t BNO055::toUnit()
   {
-    return (
+    return 
       toUint8(BNO055Unit::EUL_UNIT_RADIANS) |
       toUint8(BNO055Unit::GYR_UNIT_DPS) |
       toUint8(BNO055Unit::ACC_UNIT_METER_PER_SECOND_PER_SECOND);
-    )
   }
 
 
@@ -63,23 +68,13 @@ int16_t BNO055::readInt16(BNO055Reg lsb_reg)
 }
 
 std::array<float, 2> BNO055::readAcceleration() {
-//平面走行でZ軸は不要のため 
+//平面走行でZ軸は不要のため いったん動くか見るのでこの設定
   std::array<float, 2> accValue;
 
-  int16_t x = readInt16(BNO055Reg::ACC_DATA_X_LSB);
-  int16_t y = readInt16(BNO055Reg::ACC_DATA_Y_LSB);
+  accValue[0] = readInt16(BNO055Reg::ACC_DATA_X_LSB);
+  accValue[1] = readInt16(BNO055Reg::ACC_DATA_Y_LSB);
 
-
+  return accValue;
 }
 
-void BNO055::setUint() {
-  
-}
 
-namespace {
-
-constexpr uint8_t ACC_UNIT_MASK = 0x01;
-constexpr uint8_t GYR_UNIT_MASK = 0x02;
-constexpr uint8_t EUL_UNIT_MASK = 0x04;
-
-}
