@@ -6,6 +6,10 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <linux/i2c-dev.h>
 
 #include "imu_bno055/bno055_reg.hpp"
 

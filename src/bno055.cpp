@@ -10,14 +10,6 @@
 #include <cstdint>
 #include <iostream>
 
-// コンパイル確認用 後で削除
-int main()
-{
-    BNO055 imu("/dev/i2c-1", 0x28);
-
-    return 0;
-}
-
 
   bool BNO055::setUnit() 
   {
