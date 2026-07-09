@@ -42,6 +42,11 @@ public:
     return false;
   }
 
+  if(!setUnit()) {
+    perror("SET UNIT failed");
+    return false;
+  }
+
 
   if (!setOprMode(BNO055Mode::NDOF)) {//センサーをNDOFmodeにする
     std::cerr << "OPR_MODE failed" << std::endl;
@@ -63,23 +68,26 @@ public:
   }
 
   
-
-  constexpr uint8_t to_u8(BNO055Mode mode)
+//build通ったらテンプレートにする
+  constexpr uint8_t toUnit8(BNO055Mode mode)
   {
     return static_cast<uint8_t>(mode);
   }
 
 
-  constexpr uint8_t to_u8(BNO055Reg reg)
+  constexpr uint8_t toUnit8(BNO055Reg reg)
   {
     return static_cast<uint8_t>(reg);
   }
 
-
+  constexpr uint8_t toUnit8(BNO055Uint uint) 
+  {
+    return static_cast<uint8_t>(uint);
+  }
 
   bool expectChipID()
   {
-    return readReg(to_u8(BNO055Reg::CHIP_ID)) == EXPECT_CHIP_ID;
+    return readReg(toUnit8(BNO055Reg::CHIP_ID)) == EXPECT_CHIP_ID;
   }// 後でデータシート見る
  /* 
   void fetchData(int parameter) {
@@ -89,6 +97,11 @@ public:
     ret = writeReg()
   }
 */
+
+  std::array<float, 2> readAcceleration();
+  std::array<float, 3> readGyroscope();
+  std::array<float, 4> readQuaternion();
+
 private:
 
   bool writeReg(uint8_t reg, uint8_t value) 
@@ -114,19 +127,19 @@ private:
   uint8_t readReg(uint8_t reg)
   {
     uint8_t value = 0;
-    ssize_t read_ret, write_ret;
+    ssize_t readRet, writeRet;
 
 
-    write_ret = write(fd_, &reg, 1);//1byte送っている
+    writeRet = write(fd_, &reg, 1);//1byte送っている
   
-    if (write_ret != 1) {
+    if (writeRet != 1) {
       perror("not reg write error");
       return 0;
     }
 
-    read_ret = read(fd_, &value, 1);
+    readRet = read(fd_, &value, 1);
 
-    if (read_ret != 1) {
+    if (readRet != 1) {
       perror("not reg read error");
       return 0;
     }
@@ -145,10 +158,46 @@ private:
   bool setOprMode(BNO055Mode mode)
   {
     return writeReg(
-        to_u8(BNO055Reg::OPR_MODE),
+        toUnit8(BNO055Reg::OPR_MODE),
         static_cast<uint8_t>(mode)
     );
   }
+
+  int16_t readInt16(BNO055Reg lsb_leg);
+
+  bool writeReg(uint8_t reg, uint8_t value);
+
+  bool setUnit() 
+  {
+    uint8_t unit = toUnit();
+
+    return writeReg(toUnit8(BNO055Reg::UNIT_SEL), unit);
+
+  }
+
+  bool expectSetUnit()
+  {
+    uint8_t current = readReg(toUnit8(BNO055Reg::UNIT_SEL));
+    uint8_t expected = toUnit();
+
+    uint8_t mask =
+        ACC_UNIT_MASK |
+        GYR_UNIT_MASK |
+        EUL_UNIT_MASK;
+
+    return ((current & mask) == (expected & mask));
+
+  }
+
+  uint8_t toUnit()
+  {
+    return 
+      toUnit8(BNO055Unit::EUL_UNIT_RADIANS) |
+      toUnit8(BNO055Unit::GYR_UNIT_DPS) |
+      toUnit8(BNO055Unit::ACC_UNIT_METER_PER_SECOND_PER_SECOND);
+    
+  }
+
 };
 
 
