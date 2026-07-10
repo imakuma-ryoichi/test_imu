@@ -26,25 +26,12 @@ bool init();
 std::array<float,3> readEuler(); 
 //未実装
 
-
+template <typename T>
+constexpr uint8_t toUint8(T value)
+{
+  return static_cast<uint8_t>(value);
+}
   
-//build通ったらテンプレートにする
-  constexpr uint8_t toUint8(BNO055Mode mode)
-  {
-    return static_cast<uint8_t>(mode);
-  }
-
-
-  constexpr uint8_t toUint8(BNO055Reg reg)
-  {
-    return static_cast<uint8_t>(reg);
-  }
-
-  constexpr uint8_t toUint8(BNO055Unit unit) 
-  {
-    return static_cast<uint8_t>(unit);
-  }
-
   std::array<float, 2> readAcceleration();
   std::array<float, 3> readGyroscope();
   std::array<float, 4> readQuaternion();
