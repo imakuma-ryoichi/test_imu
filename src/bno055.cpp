@@ -57,13 +57,6 @@ bool BNO055::init()
 
   }
   
-
-std::array<float,3> BNO055::readEuler() {//未実装
-    std::array<float, 3> euler{0.0f, 0.0f, 0.0f};//コンパイル通すために一時的においている
-
-    return euler;
-  }
-
 uint8_t BNO055::readReg(uint8_t reg)
   {
     uint8_t value = 0;
@@ -199,6 +192,20 @@ std::array<float, 4> BNO055::readQuaternion()
   quatValue[3] = static_cast<float>(readInt16(BNO055Reg::QUA_DATA_Z_LSB)) * QUAT_SCALE;
 
   return quatValue;
+}
+
+// degree /16.0f   radians /900.0f
+std::array<float, 3> BNO055::readEuler() 
+{
+  constexpr float EUL_SCALE = 1.0f / 900.0f;
+
+  std::array<float, 3> eulValue;
+
+  eulValue[0] = static_cast<float>(readInt16(BNO055Reg::EUL_DATA_X_LSB)) * EUL_SCALE;
+  eulValue[1] = static_cast<float>(readInt16(BNO055Reg::EUL_DATA_Y_LSB)) * EUL_SCALE;
+  eulValue[2] = static_cast<float>(readInt16(BNO055Reg::EUL_DATA_Z_LSB)) * EUL_SCALE;
+
+  return eulValue;
 }
 
 

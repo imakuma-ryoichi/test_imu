@@ -23,8 +23,6 @@ public:
 
 bool init(); 
 
-std::array<float,3> readEuler(); 
-//未実装
 
 template <typename T>
 constexpr uint8_t toUint8(T value)
@@ -35,6 +33,7 @@ constexpr uint8_t toUint8(T value)
   std::array<float, 2> readAcceleration();
   std::array<float, 3> readGyroscope();
   std::array<float, 4> readQuaternion();
+  std::array<float, 3> readEuler(); 
 
 private:
 
