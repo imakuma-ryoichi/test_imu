@@ -160,9 +160,7 @@ int16_t BNO055::readInt16(BNO055Reg lsb_reg)
 
 
 // m/s^2 == /100.0f , mg == /1.0f  
-
 std::array<float, 2> BNO055::readAcceleration() {
-//平面走行でZ軸は不要のため いったん動くか見るのでこの設定
 
   constexpr float ACC_SCALE = 1.0f / 100.0f;
 
