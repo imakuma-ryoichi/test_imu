@@ -44,6 +44,11 @@ bool BNO055::init()
     return false;
   }
 
+  if (!expectSetUnit()) {
+    std::cerr << "UNIT_SEL verification failed" << std::endl;
+    close(fd_);
+    return false;
+  }
 
   if (!setOprMode(BNO055Mode::NDOF)) {//センサーをNDOFmodeにする
     std::cerr << "OPR_MODE failed" << std::endl;
@@ -134,19 +139,22 @@ uint8_t BNO055::readReg(uint8_t reg)
   }
 
 
-int16_t BNO055::readInt16(BNO055Reg lsb_reg)
+int16_t BNO055::readInt16(BNO055Reg lsbReg)
 {
   uint16_t rawValue;
+  uint8_t lsbValue, msbValue;
 
-  uint8_t lsb = toUint8(lsb_reg);
-  uint8_t msb = lsb + 1;
+  uint8_t lsbAddr = toUint8(lsbReg);
+  uint8_t msbAddr = lsbAddr + 1;
 
-  lsb = readReg(lsb);
-  msb = readReg(msb);
+  lsbValue = readReg(lsbAddr);
+  msbValue = readReg(msbAddr);
   
 //  value << msb | lsb;
 
-  rawValue = (static_cast<uint16_t>(msb) << 8) | lsb; 
+  rawValue = (static_cast<uint16_t>(msbValue) << 8) | 
+              static_cast<uint16_t>(lsbValue); 
+  
   return static_cast<int16_t>(rawValue);
   
 }
@@ -209,6 +217,7 @@ std::array<float, 3> BNO055::readEuler()
 }
 
 
+
 bool BNO055::expectChipID()
   {
     return readReg(toUint8(BNO055Reg::CHIP_ID)) == EXPECT_CHIP_ID;
@@ -224,6 +233,10 @@ bool BNO055::setOprMode(BNO055Mode mode)
   }
 
 
+CalibrationData BNO055::readCalibration()
+{
+  readInt16(BNO055Reg::)
+}
 
 
 
