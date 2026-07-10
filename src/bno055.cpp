@@ -136,7 +136,7 @@ uint8_t BNO055::readReg(uint8_t reg)
   {
     return 
       toUint8(BNO055Unit::EUL_UNIT_RADIANS) |
-      toUint8(BNO055Unit::GYR_UNIT_DPS) |
+      toUint8(BNO055Unit::GYR_UNIT_RPS) |
       toUint8(BNO055Unit::ACC_UNIT_METER_PER_SECOND_PER_SECOND);
   }
 
@@ -159,15 +159,48 @@ int16_t BNO055::readInt16(BNO055Reg lsb_reg)
 }
 
 
+// m/s^2 == /100.0f , mg == /1.0f  
 
 std::array<float, 2> BNO055::readAcceleration() {
 //平面走行でZ軸は不要のため いったん動くか見るのでこの設定
+
+  constexpr float ACC_SCALE = 1.0f / 100.0f;
+
   std::array<float, 2> accValue;
 
-  accValue[0] = readInt16(BNO055Reg::ACC_DATA_X_LSB);
-  accValue[1] = readInt16(BNO055Reg::ACC_DATA_Y_LSB);
+  accValue[0] = static_cast<float>(readInt16(BNO055Reg::ACC_DATA_X_LSB)) * ACC_SCALE;
+  accValue[1] = static_cast<float>(readInt16(BNO055Reg::ACC_DATA_Y_LSB)) * ACC_SCALE;
 
   return accValue;
+}
+
+//Dps == /16.0f, Rps == /900.0f
+std::array<float, 3> BNO055::readGyroscope() 
+{
+  constexpr float GYR_SCALE = 1.0f / 900.0f;
+
+  std::array<float, 3> gyrValue;
+
+  gyrValue[0] = static_cast<float>(readInt16(BNO055Reg::GYR_DATA_X_LSB)) * GYR_SCALE;
+  gyrValue[1] = static_cast<float>(readInt16(BNO055Reg::GYR_DATA_Y_LSB)) * GYR_SCALE;
+  gyrValue[2] = static_cast<float>(readInt16(BNO055Reg::GYR_DATA_Z_LSB)) * GYR_SCALE;
+
+  return gyrValue;
+}
+
+// Qua /2^14
+std::array<float, 4> BNO055::readQuaternion()
+{
+  constexpr float QUAT_SCALE = 1.0f / static_cast<float>(1 << 14);
+
+  std::array<float, 4> quatValue;
+
+  quatValue[0] = static_cast<float>(readInt16(BNO055Reg::QUA_DATA_W_LSB)) * QUAT_SCALE;
+  quatValue[1] = static_cast<float>(readInt16(BNO055Reg::QUA_DATA_X_LSB)) * QUAT_SCALE;
+  quatValue[2] = static_cast<float>(readInt16(BNO055Reg::QUA_DATA_Y_LSB)) * QUAT_SCALE;
+  quatValue[3] = static_cast<float>(readInt16(BNO055Reg::QUA_DATA_Z_LSB)) * QUAT_SCALE;
+
+  return quatValue;
 }
 
 
