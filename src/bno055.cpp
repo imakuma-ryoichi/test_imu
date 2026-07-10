@@ -10,6 +10,105 @@
 #include <cstdint>
 #include <iostream>
 
+BNO055::BNO055(std::string dev, uint8_t addr) 
+  : dev_(dev), addr_(addr), fd_(-1)
+  {}
+
+bool BNO055::init() 
+  {
+   fd_ = open(dev_.c_str(), O_RDWR);
+    
+  if (fd_ == -1) {
+    perror("open failed");
+    return false; 
+  }
+    
+  int ret = ioctl(fd_, I2C_SLAVE, addr_);
+
+  if (ret == -1) {
+    perror("ioctl failed");
+    close(fd_);
+    return false;
+  }
+
+
+  if (!expectChipID()) {
+    std::cerr << "CHIP_ID mismatch" << std::endl;
+    close(fd_);
+    return false;
+  }
+
+  if(!setUnit()) {
+    std::cerr << "SET UNIT failed" << std::endl;
+    close(fd_);
+    return false;
+  }
+
+
+  if (!setOprMode(BNO055Mode::NDOF)) {//センサーをNDOFmodeにする
+    std::cerr << "OPR_MODE failed" << std::endl;
+    close(fd_);
+    return false;
+  }
+  
+  std::this_thread::sleep_for(std::chrono::milliseconds(100)); 
+  
+  return true;
+
+  }
+  
+
+std::array<float,3> BNO055::readEuler() {//未実装
+    std::array<float, 3> euler{0.0f, 0.0f, 0.0f};//コンパイル通すために一時的においている
+
+    return euler;
+  }
+
+uint8_t BNO055::readReg(uint8_t reg)
+  {
+    uint8_t value = 0;
+    ssize_t readRet, writeRet;
+
+
+    writeRet = write(fd_, &reg, 1);//1byte送っている
+  
+    if (writeRet != 1) {
+      perror("not reg write error");
+      return 0;
+    }
+
+    readRet = read(fd_, &value, 1);
+
+    if (readRet != 1) {
+      perror("not reg read error");
+      return 0;
+    }
+
+    return value;
+    
+  }
+  
+
+ bool BNO055::writeReg(uint8_t reg, uint8_t value) 
+  {
+    ssize_t ret;
+
+    std::array<uint8_t, 2> buf;
+
+    buf[0] = reg;
+    buf[1] = value;
+
+    ret = write (fd_, buf.data(), 2);
+
+    if (ret != 2) {
+      perror("writeReg failed");
+      return false;
+    }
+  
+  return true; 
+
+  }
+
 
   bool BNO055::setUnit() 
   {
@@ -54,10 +153,12 @@ int16_t BNO055::readInt16(BNO055Reg lsb_reg)
   
 //  value << msb | lsb;
 
-  rawValue = (static_cast<uint16_t>(msb) << 8) | lsb; //ここがどうなるかやね
+  rawValue = (static_cast<uint16_t>(msb) << 8) | lsb; 
   return static_cast<int16_t>(rawValue);
   
 }
+
+
 
 std::array<float, 2> BNO055::readAcceleration() {
 //平面走行でZ軸は不要のため いったん動くか見るのでこの設定
@@ -68,5 +169,30 @@ std::array<float, 2> BNO055::readAcceleration() {
 
   return accValue;
 }
+
+
+bool BNO055::expectChipID()
+  {
+    return readReg(toUint8(BNO055Reg::CHIP_ID)) == EXPECT_CHIP_ID;
+  }
+
+
+bool BNO055::setOprMode(BNO055Mode mode)
+  {
+    return writeReg(
+        toUint8(BNO055Reg::OPR_MODE),
+        static_cast<uint8_t>(mode)
+    );
+  }
+
+
+
+
+
+
+
+
+
+
 
 
