@@ -2,6 +2,7 @@
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <linux/i2c-dev.h>
+#include "imu_bno055/bno055_data.hpp"
 #include "imu_bno055/bno055.hpp"
 #include "imu_bno055/bno055_reg.hpp"
 #include <thread>
@@ -235,8 +236,29 @@ bool BNO055::setOprMode(BNO055Mode mode)
 
 CalibrationData BNO055::readCalibration()
 {
-  readInt16(BNO055Reg::)
+  CalibrationData calibData;
+
+  calibData.accOffset[0] = readInt16(BNO055Reg::ACC_OFFSET_X_LSB);
+  calibData.accOffset[1] = readInt16(BNO055Reg::ACC_OFFSET_Y_LSB);
+  calibData.accOffset[2] = readInt16(BNO055Reg::ACC_OFFSET_Z_LSB);
+
+  calibData.gyrOffset[0] = readInt16(BNO055Reg::GYR_OFFSET_X_LSB);
+  calibData.gyrOffset[1] = readInt16(BNO055Reg::GYR_OFFSET_Y_LSB);
+  calibData.gyrOffset[2] = readInt16(BNO055Reg::GYR_OFFSET_Z_LSB);
+
+  return calibData;
 }
+
+/*bool BNO055::isCalib()
+  {
+    uint8_t calibData 
+
+    calibData = readReg(BNO055Reg::CALIB_STAT);
+
+    uint8_t mask 
+    
+  }
+  */
 
 
 

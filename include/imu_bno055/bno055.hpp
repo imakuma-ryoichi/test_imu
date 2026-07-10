@@ -11,6 +11,7 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 
+#include "imu_bno055/bno055_data.hpp"
 #include "imu_bno055/bno055_reg.hpp"
 
 // 後で実装はcppに書く
@@ -29,8 +30,6 @@ public:
   std::array<float, 3> readEuler(); 
  
   CalibrationData readCalibration();
-
-
 
 private:
 

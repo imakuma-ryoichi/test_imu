@@ -1,12 +1,12 @@
 #pragma once
 
 #include <cstdint>
+#include <array>
 
 struct CalibrationData {
-    int16_t acc_offset[3];
-    int16_t gyr_offset[3];
-    int16_t mag_offset[3];
 
-    int16_t acc_radius;
-    int16_t mag_radius;
+  std::array<int16_t, 3> accOffset;
+  std::array<int16_t, 3> gyrOffset;
+
+//int16_t accRadius;
 };
