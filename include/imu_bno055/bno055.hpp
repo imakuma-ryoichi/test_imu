@@ -31,6 +31,7 @@ public:
  
   CalibrationData readCalibration();
 
+  bool isCalib();
 private:
 
   template <typename T>

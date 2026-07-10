@@ -249,16 +249,32 @@ CalibrationData BNO055::readCalibration()
   return calibData;
 }
 
-/*bool BNO055::isCalib()
+bool BNO055::isCalib()
   {
-    uint8_t calibData 
 
-    calibData = readReg(BNO055Reg::CALIB_STAT);
+    bool ret = true;
 
-    uint8_t mask 
-    
+    uint8_t accCalibStatus, gyrCalibStatus;
+
+    uint8_t calibData;
+
+    calibData = readReg(toUint8(BNO055Reg::CALIB_STAT));
+
+    accCalibStatus = (calibData >> 2) & 0x03;//2bit抽出
+    gyrCalibStatus = (calibData >> 4) & 0x03;
+  
+    if (accCalibStatus != 3) {
+      ret = false;
+      std::cerr << "accCalibStatus is inappropriate" << std::endl;
+    }
+
+    if (gyrCalibStatus != 3) {
+      ret = false;
+      std::cerr << "gyrCalibStatus is inappropriate" << std::endl;
+    }
+
+    return ret;
   }
-  */
 
 
 

@@ -82,8 +82,5 @@ namespace {
   constexpr uint8_t GYR_UNIT_MASK = 0x02;
   constexpr uint8_t EUL_UNIT_MASK = 0x04;
 
-// Calibration
-//  constexpr uint8_t ACC_CALIB_MASK = ,
-  
 
 }
