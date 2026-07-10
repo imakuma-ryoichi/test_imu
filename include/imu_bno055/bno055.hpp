@@ -18,17 +18,10 @@
 class BNO055 
 {
 public:
+
   BNO055(std::string dev, uint8_t addr);
 
-
-bool init(); 
-
-
-template <typename T>
-constexpr uint8_t toUint8(T value)
-{
-  return static_cast<uint8_t>(value);
-}
+  bool init(); 
   
   std::array<float, 2> readAcceleration();
   std::array<float, 3> readGyroscope();
@@ -36,6 +29,13 @@ constexpr uint8_t toUint8(T value)
   std::array<float, 3> readEuler(); 
 
 private:
+
+  template <typename T>
+  constexpr uint8_t toUint8(T value)
+{
+  return static_cast<uint8_t>(value);
+}
+
 
   bool writeReg(uint8_t reg, uint8_t value);
 
