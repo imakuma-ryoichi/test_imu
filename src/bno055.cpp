@@ -97,7 +97,7 @@ uint8_t BNO055::readReg(uint8_t reg)
     buf[0] = reg;
     buf[1] = value;
 
-    ret = write (fd_, buf.data(), 2);
+    ret = write (fd_, buf.data(), 2);//2byte 書く
 
     if (ret != 2) {
       perror("writeReg failed");
@@ -207,6 +207,7 @@ std::array<float, 4> BNO055::readQuaternion()
 std::array<float, 3> BNO055::readEuler() 
 {
   constexpr float EUL_SCALE = 1.0f / 900.0f;
+  //ここの上ymlで追い出すなら使用知らんけど変数名の差異で変更させるだけで行ければ熱そう
 
   std::array<float, 3> eulValue;
 
@@ -233,6 +234,13 @@ bool BNO055::setOprMode(BNO055Mode mode)
     );
   }
 
+/*
+CalibrationData BNO055::writeCalibration()
+{
+  CalibrationData calibValue;
+
+}
+*/
 
 CalibrationData BNO055::readCalibration()
 {
@@ -246,6 +254,13 @@ CalibrationData BNO055::readCalibration()
   calibData.gyrOffset[1] = readInt16(BNO055Reg::GYR_OFFSET_Y_LSB);
   calibData.gyrOffset[2] = readInt16(BNO055Reg::GYR_OFFSET_Z_LSB);
 
+  calibData.magOffset[0] = readInt16(BNO055Reg::MAG_OFFSET_X_LSB);
+  calibData.magOffset[1] = readInt16(BNO055Reg::MAG_OFFSET_Y_LSB);
+  calibData.magOffset[2] = readInt16(BNO055Reg::MAG_OFFSET_Z_LSB);
+ 
+  calibData.magRadius = readInt16(BNO055Reg::MAG_RADIUS_LSB);
+  calibData.accRadius = readInt16(BNO055Reg::ACC_RADIUS_LSB);
+  
   return calibData;
 }
 
@@ -260,15 +275,15 @@ bool BNO055::isCalib()
 
     calibData = readReg(toUint8(BNO055Reg::CALIB_STAT));
 
-    accCalibStatus = (calibData >> 2) & 0x03;//2bit抽出
-    gyrCalibStatus = (calibData >> 4) & 0x03;
+    accCalibStatus = (calibData >> ACC_CALIB_BIT_SHIFT) & CALIB_MASK;//2bit抽出
+    gyrCalibStatus = (calibData >> GYR_CALIB_BIT_SHIFT) & CALIB_MASK;
   
-    if (accCalibStatus != 3) {
+    if (accCalibStatus != CALIB_APPOROPRIATE) {
       ret = false;
       std::cerr << "accCalibStatus is inappropriate" << std::endl;
     }
 
-    if (gyrCalibStatus != 3) {
+    if (gyrCalibStatus != CALIB_APPOROPRIATE) {
       ret = false;
       std::cerr << "gyrCalibStatus is inappropriate" << std::endl;
     }

@@ -29,6 +29,8 @@ public:
   std::array<float, 4> readQuaternion();
   std::array<float, 3> readEuler(); 
  
+ 
+//  CalibrationData writeCalibration()
   CalibrationData readCalibration();
 
   bool isCalib();
