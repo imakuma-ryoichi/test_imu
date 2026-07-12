@@ -1,5 +1,4 @@
 #pragma once
-
 #include <cstdint>
 #include <iostream>
 
@@ -75,8 +74,8 @@ enum class BNO055Reg : uint8_t {
   MAG_OFFSET_Z_LSB = 0x5F,
 
   // acc & mag radius
-  MAG_RADIUS_LSB = 0x69,
   ACC_RADIUS_LSB = 0x67,
+  MAG_RADIUS_LSB = 0x69,
 
   //Calibration reg
   CALIB_STAT = 0x35,

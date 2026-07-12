@@ -97,7 +97,7 @@ uint8_t BNO055::readReg(uint8_t reg)
     buf[0] = reg;
     buf[1] = value;
 
-    ret = write (fd_, buf.data(), 2);//2byte 書く
+    ret = write (fd_, buf.data(), 2);//2bit 書く
 
     if (ret != 2) {
       perror("writeReg failed");
@@ -139,6 +139,25 @@ uint8_t BNO055::readReg(uint8_t reg)
       toUint8(BNO055Unit::ACC_UNIT_METER_PER_SECOND_PER_SECOND);
   }
 
+bool BNO055::writeInt16(uint8_t lsbReg, int16_t rawValue)
+{
+  uint16_t value = static_cast<uint16_t>(rawValue);
+
+  uint8_t lsbValue, msbValue;
+  
+  lsbValue = value & 0xFF;
+  msbValue = (value >> 8) & 0xFF;
+
+  uint8_t lsbAddr = lsbReg;
+  uint8_t msbAddr = lsbAddr + 1;
+
+  if (!writeReg(lsbAddr, lsbValue)) return false;
+
+  if (!writeReg(msbAddr, msbValue)) return false;
+
+  return true;
+
+}
 
 int16_t BNO055::readInt16(BNO055Reg lsbReg)
 {
@@ -230,17 +249,68 @@ bool BNO055::setOprMode(BNO055Mode mode)
   {
     return writeReg(
         toUint8(BNO055Reg::OPR_MODE),
-        static_cast<uint8_t>(mode)
+        toUint8(mode)
     );
   }
 
-/*
-CalibrationData BNO055::writeCalibration()
-{
-  CalibrationData calibValue;
 
+bool BNO055::writeCalibration(const CalibrationData &calibData)
+{
+
+  if (!setOprMode(BNO055Mode::CONFIG)) {
+    std::cerr << "writeCalibration setOprMode(CONFIG) error" << std::endl;
+    return false;
+  }
+
+  if (!writeOffset(calibData.accOffset, BNO055Reg::ACC_OFFSET_X_LSB)) {
+    std::cerr << "Failed to write accOffset" << std::endl;
+    return false;
+  }
+  
+  if (!writeOffset(calibData.gyrOffset, BNO055Reg::GYR_OFFSET_X_LSB)) {
+    std::cerr << "Failed to write gyrOffset" << std::endl;
+    return false;
+  }
+
+  if (!writeOffset(calibData.magOffset, BNO055Reg::MAG_OFFSET_X_LSB)) {
+    std::cerr << "Failed to write magOffset" << std::endl;
+    return false;
+  }
+
+  if (!writeInt16(toUint8(BNO055Reg::ACC_RADIUS_LSB), calibData.accRadius)) {
+    std::cerr << "Failed to write accmeter radius" << std::endl;
+    return false;
+  }
+
+  if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calibData.magRadius)) {
+    std::cerr << "Failed to write gyrmeter radius" << std::endl;
+    return false;
+  }
+
+  if (!setOprMode(BNO055Mode::NDOF)) {
+    std::cerr << "writeCalibration setOprMode(NDOF) error" << std::endl;
+    return false;
+  }
+
+  std::cout << "Succsess write to Calibration" << std::endl;
+
+  return true;
 }
-*/
+
+bool BNO055::writeOffset(const std::array<int16_t, 3>& offsetArray, BNO055Reg baseReg) 
+{
+  
+  uint8_t xLsbReg = toUint8(baseReg);
+  uint8_t yLsbReg = xLsbReg + 2;
+  uint8_t zLsbReg = yLsbReg + 2;
+
+  if (!writeInt16(xLsbReg, offsetArray[0])) return false;
+  if (!writeInt16(yLsbReg, offsetArray[1])) return false;
+  if (!writeInt16(zLsbReg, offsetArray[2])) return false;
+  
+  return true;
+}
+
 
 CalibrationData BNO055::readCalibration()
 {
@@ -258,8 +328,8 @@ CalibrationData BNO055::readCalibration()
   calibData.magOffset[1] = readInt16(BNO055Reg::MAG_OFFSET_Y_LSB);
   calibData.magOffset[2] = readInt16(BNO055Reg::MAG_OFFSET_Z_LSB);
  
-  calibData.magRadius = readInt16(BNO055Reg::MAG_RADIUS_LSB);
   calibData.accRadius = readInt16(BNO055Reg::ACC_RADIUS_LSB);
+  calibData.magRadius = readInt16(BNO055Reg::MAG_RADIUS_LSB);
   
   return calibData;
 }

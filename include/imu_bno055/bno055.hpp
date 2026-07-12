@@ -30,7 +30,7 @@ public:
   std::array<float, 3> readEuler(); 
  
  
-//  CalibrationData writeCalibration()
+  bool writeCalibration(const CalibrationData &calibData);
   CalibrationData readCalibration();
 
   bool isCalib();
@@ -54,7 +54,11 @@ private:
 
   bool setOprMode(BNO055Mode mode);
   
-  int16_t readInt16(BNO055Reg lsb_leg);
+  int16_t readInt16(BNO055Reg lsbReg);
+
+  bool writeInt16(uint8_t lsbReg, int16_t rawValue);
+
+  bool writeOffset(const std::array<int16_t, 3>& offsetArray, BNO055Reg baseReg);
 
   bool expectSetUnit();//そのうちinitに追加
 
