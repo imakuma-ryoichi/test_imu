@@ -14,7 +14,6 @@
 #include "imu_bno055/bno055_data.hpp"
 #include "imu_bno055/bno055_reg.hpp"
 
-// 後で実装はcppに書く
 
 class BNO055 
 {
@@ -53,7 +52,9 @@ private:
   int fd_;
 
   bool setOprMode(BNO055Mode mode);
-  
+ 
+  bool readOprMode();
+
   int16_t readInt16(BNO055Reg lsbReg);
 
   bool writeInt16(uint8_t lsbReg, int16_t rawValue);

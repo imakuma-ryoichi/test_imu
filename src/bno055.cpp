@@ -52,7 +52,6 @@ bool BNO055::init()
   }
 
   if (!setOprMode(BNO055Mode::NDOF)) {//センサーをNDOFmodeにする
-    std::cerr << "OPR_MODE failed" << std::endl;
     close(fd_);
     return false;
   }
@@ -215,6 +214,7 @@ std::array<float, 4> BNO055::readQuaternion()
   std::array<float, 4> quatValue;
 
   quatValue[0] = static_cast<float>(readInt16(BNO055Reg::QUA_DATA_W_LSB)) * QUAT_SCALE;
+// 後で実装はcppに書く
   quatValue[1] = static_cast<float>(readInt16(BNO055Reg::QUA_DATA_X_LSB)) * QUAT_SCALE;
   quatValue[2] = static_cast<float>(readInt16(BNO055Reg::QUA_DATA_Y_LSB)) * QUAT_SCALE;
   quatValue[3] = static_cast<float>(readInt16(BNO055Reg::QUA_DATA_Z_LSB)) * QUAT_SCALE;
@@ -244,21 +244,36 @@ bool BNO055::expectChipID()
     return readReg(toUint8(BNO055Reg::CHIP_ID)) == EXPECT_CHIP_ID;
   }
 
-
 bool BNO055::setOprMode(BNO055Mode mode)
-  {
-    return writeReg(
-        toUint8(BNO055Reg::OPR_MODE),
-        toUint8(mode)
-    );
-  }
+{
+    constexpr int MAX_RETRY = 3;
 
+    for (int i = 0; i < MAX_RETRY; i++) {
+        if (!writeReg(toUint8(BNO055Reg::OPR_MODE), toUint8(mode))) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            continue;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
+        uint8_t currentMode = readReg(toUint8(BNO055Reg::OPR_MODE)); //ここ読み取れないとき0が入るがどうするか
+
+        if ((currentMode & 0x0F) == toUint8(mode)) {
+            return true;
+        }
+    }
+
+    std::cerr << "Failed to set operation mode: "
+              << static_cast<int>(toUint8(mode))
+              << std::endl;
+
+    return false;
+}
 
 bool BNO055::writeCalibration(const CalibrationData &calibData)
 {
 
   if (!setOprMode(BNO055Mode::CONFIG)) {
-    std::cerr << "writeCalibration setOprMode(CONFIG) error" << std::endl;
     return false;
   }
 
@@ -288,7 +303,6 @@ bool BNO055::writeCalibration(const CalibrationData &calibData)
   }
 
   if (!setOprMode(BNO055Mode::NDOF)) {
-    std::cerr << "writeCalibration setOprMode(NDOF) error" << std::endl;
     return false;
   }
 
