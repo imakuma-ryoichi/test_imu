@@ -360,6 +360,10 @@ CalibrationData BNO055::readCalibration()
 bool BNO055::isCalib()
   {
 
+    bool ret = true;
+    //ここはキャリブレーションできたか有無を知りたいのでretを使用
+    //あとaccとかも追加必須
+
     uint8_t accCalibStatus, gyrCalibStatus;
 
     uint8_t calibData;
@@ -371,15 +375,15 @@ bool BNO055::isCalib()
   
     if (accCalibStatus != CALIB_APPROPRIATE) {
       std::cerr << "accCalibStatus is inappropriate" << std::endl;
-      return false;
+      ret = false;
     }
 
     if (gyrCalibStatus != CALIB_APPROPRIATE) {
       std::cerr << "gyrCalibStatus is inappropriate" << std::endl;
-      return false;
+      ret = false;
     }
 
-    return true;
+    return ret;
   }
 
 
