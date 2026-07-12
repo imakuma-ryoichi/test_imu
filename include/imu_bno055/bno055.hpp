@@ -43,7 +43,7 @@ private:
 
   bool writeReg(uint8_t reg, uint8_t value);
 
-  uint8_t readReg(uint8_t reg);
+  bool readReg(uint8_t reg, uint8_t& outValue);
  
   std::string dev_;
 

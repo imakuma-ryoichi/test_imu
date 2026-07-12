@@ -93,7 +93,7 @@ namespace {
 // calibration 
 
   constexpr uint8_t CALIB_MASK = 0x03;
-  constexpr uint8_t CALIB_APPOROPRIATE = 3;//CALIB_DONE より　こっちの方がいいのでは？
+  constexpr uint8_t CALIB_APPROPRIATE = 3;//CALIB_DONE より　こっちの方がいいのでは？
   constexpr uint8_t ACC_CALIB_BIT_SHIFT = 2;
   constexpr uint8_t GYR_CALIB_BIT_SHIFT = 4;
 }

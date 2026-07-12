@@ -62,27 +62,24 @@ bool BNO055::init()
 
   }
   
-uint8_t BNO055::readReg(uint8_t reg)
+bool BNO055::readReg(uint8_t reg,uint8_t& outValue)
   {
-    uint8_t value = 0;
-    ssize_t readRet, writeRet;
 
-
-    writeRet = write(fd_, &reg, 1);//1byte送っている
+    ssize_t writeRet = write(fd_, &reg, 1);//1byte送っている
   
     if (writeRet != 1) {
-      perror("not reg write error");
-      return 0;
+      perror("write reg");
+      return false;
     }
 
-    readRet = read(fd_, &value, 1);
+    ssize_t readRet = read(fd_, &outValue, 1);
 
     if (readRet != 1) {
-      perror("not reg read error");
-      return 0;
+      perror("read reg");
+      return false;
     }
 
-    return value;
+    return true;
     
   }
   
@@ -118,7 +115,10 @@ uint8_t BNO055::readReg(uint8_t reg)
 
   bool BNO055::expectSetUnit()
   {
-    uint8_t current = readReg(toUint8(BNO055Reg::UNIT_SEL));
+    uint8_t current;
+
+    if (!readReg(toUint8(BNO055Reg::UNIT_SEL), current)) return false; 
+
     uint8_t expected = toUnit();
 
     uint8_t mask =
@@ -158,7 +158,7 @@ bool BNO055::writeInt16(uint8_t lsbReg, int16_t rawValue)
 
 }
 
-int16_t BNO055::readInt16(BNO055Reg lsbReg)
+int16_t BNO055::readInt16(BNO055Reg lsbReg)//boolがたにして参照渡しに後日変更
 {
   uint16_t rawValue;
   uint8_t lsbValue, msbValue;
@@ -166,8 +166,8 @@ int16_t BNO055::readInt16(BNO055Reg lsbReg)
   uint8_t lsbAddr = toUint8(lsbReg);
   uint8_t msbAddr = lsbAddr + 1;
 
-  lsbValue = readReg(lsbAddr);
-  msbValue = readReg(msbAddr);
+  readReg(lsbAddr, lsbValue);//ここにif return
+  readReg(msbAddr, msbValue);
   
 //  value << msb | lsb;
 
@@ -241,7 +241,11 @@ std::array<float, 3> BNO055::readEuler()
 
 bool BNO055::expectChipID()
   {
-    return readReg(toUint8(BNO055Reg::CHIP_ID)) == EXPECT_CHIP_ID;
+    uint8_t chipID;
+
+    if (!readReg(toUint8(BNO055Reg::CHIP_ID), chipID)) return false;
+
+    return chipID == EXPECT_CHIP_ID;
   }
 
 bool BNO055::setOprMode(BNO055Mode mode)
@@ -256,7 +260,12 @@ bool BNO055::setOprMode(BNO055Mode mode)
 
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
 
-        uint8_t currentMode = readReg(toUint8(BNO055Reg::OPR_MODE)); //ここ読み取れないとき0が入るがどうするか
+        uint8_t currentMode;
+
+        if (!readReg(toUint8(BNO055Reg::OPR_MODE), currentMode)) {
+          std::this_thread::sleep_for(std::chrono::milliseconds(10));
+          continue;
+        }
 
         if ((currentMode & 0x0F) == toUint8(mode)) {
             return true;
@@ -351,28 +360,26 @@ CalibrationData BNO055::readCalibration()
 bool BNO055::isCalib()
   {
 
-    bool ret = true;
-
     uint8_t accCalibStatus, gyrCalibStatus;
 
     uint8_t calibData;
 
-    calibData = readReg(toUint8(BNO055Reg::CALIB_STAT));
+    if (!readReg(toUint8(BNO055Reg::CALIB_STAT), calibData)) return false;
 
     accCalibStatus = (calibData >> ACC_CALIB_BIT_SHIFT) & CALIB_MASK;//2bit抽出
     gyrCalibStatus = (calibData >> GYR_CALIB_BIT_SHIFT) & CALIB_MASK;
   
-    if (accCalibStatus != CALIB_APPOROPRIATE) {
-      ret = false;
+    if (accCalibStatus != CALIB_APPROPRIATE) {
       std::cerr << "accCalibStatus is inappropriate" << std::endl;
+      return false;
     }
 
-    if (gyrCalibStatus != CALIB_APPOROPRIATE) {
-      ret = false;
+    if (gyrCalibStatus != CALIB_APPROPRIATE) {
       std::cerr << "gyrCalibStatus is inappropriate" << std::endl;
+      return false;
     }
 
-    return ret;
+    return true;
   }
 
 
