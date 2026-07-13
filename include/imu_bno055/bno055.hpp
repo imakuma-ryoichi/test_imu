@@ -23,16 +23,16 @@ public:
 
   bool init(); 
   
-  std::array<float, 2> readAcceleration();
-  std::array<float, 3> readGyroscope();
-  std::array<float, 4> readQuaternion();
-  std::array<float, 3> readEuler(); 
- 
+  bool readAcceleration(std::array<float, 2>& accValue);
+  bool readGyroscope(std::array<float, 3>& gyrValue);
+  bool readQuaternion(std::array<float, 4>& quatValue);
+  bool readEuler(std::array<float, 3>& eulValue); 
  
   bool writeCalibration(const CalibrationData &calibData);
-  CalibrationData readCalibration();
+  bool readCalibration(CalibrationData &calibData);
 
   bool isCalib();
+
 private:
 
   template <typename T>
@@ -55,7 +55,7 @@ private:
  
   bool readOprMode();
 
-  int16_t readInt16(BNO055Reg lsbReg);
+  bool readInt16(BNO055Reg lsbReg, int16_t& outValue);
 
   bool writeInt16(uint8_t lsbReg, int16_t rawValue);
 

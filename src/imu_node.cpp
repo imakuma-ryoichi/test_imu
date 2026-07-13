@@ -1,6 +1,6 @@
-
 #include "imu_bno055/bno055.hpp"
 
+#include <array>
 #include <iostream>
 
 int main()
@@ -16,7 +16,12 @@ int main()
 
     std::cout << "init success" << std::endl;
 
-    auto acc = imu.readAcceleration();
+    std::array<float, 2> acc{};
+
+    if (!imu.readAcceleration(acc)) {
+        std::cerr << "Failed to read acceleration" << std::endl;
+        return 1;
+    }
 
     std::cout << "acc x = "
               << acc[0]
@@ -25,6 +30,11 @@ int main()
 
     std::cout << "acc y = "
               << acc[1]
+              << " m/s^2"
+              << std::endl;
+
+    std::cout << "acc z = "
+              << acc[2]
               << " m/s^2"
               << std::endl;
 

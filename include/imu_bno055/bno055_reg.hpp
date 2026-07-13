@@ -48,10 +48,10 @@ enum class BNO055Reg : uint8_t {
   GYR_DATA_Z_LSB = 0x18,
 
   //quaternion data
-  QUA_DATA_W_LSB = 0x20,
-  QUA_DATA_X_LSB = 0x22,
-  QUA_DATA_Y_LSB = 0x24,
-  QUA_DATA_Z_LSB = 0x26,
+  QUAT_DATA_W_LSB = 0x20,
+  QUAT_DATA_X_LSB = 0x22,
+  QUAT_DATA_Y_LSB = 0x24,
+  QUAT_DATA_Z_LSB = 0x26,
 
   //euler data
   EUL_DATA_X_LSB = 0x1A,
