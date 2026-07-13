@@ -16,27 +16,31 @@ int main()
 
     std::cout << "init success" << std::endl;
 
-    std::array<float, 2> acc{};
+  std::array<float, 2> acc{};
+  std::array<float, 3> gyr{};
+  std::array<float, 4> quat{};
+  std::array<float, 3> eul{};
 
-    if (!imu.readAcceleration(acc)) {
-        std::cerr << "Failed to read acceleration" << std::endl;
-        return 1;
-    }
+  if (imu.readAcceleration(acc)) {
+    std::cout << "acc: "
+              << acc[0] << ", "
+              << acc[1] << std::endl;
+  }
 
-    std::cout << "acc x = "
-              << acc[0]
-              << " m/s^2"
-              << std::endl;
+  if (imu.readGyroscope(gyr)) {
+    std::cout << "gyro: "
+              << gyr[0] << ", "
+              << gyr[1] << ", "
+              << gyr[2] << std::endl;
+  }
 
-    std::cout << "acc y = "
-              << acc[1]
-              << " m/s^2"
-              << std::endl;
 
-    std::cout << "acc z = "
-              << acc[2]
-              << " m/s^2"
-              << std::endl;
-
+  if (imu.readQuaternion(quat)) {
+    std::cout << "quat: "
+              << quat[0] << ", "
+              << quat[1] << ", "
+              << quat[2] << ", "
+              << quat[3] << std::endl;
+  }
     return 0;
-}
+  }
