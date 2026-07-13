@@ -42,9 +42,9 @@ private:
 
   bool writeReg(uint8_t reg, uint8_t value);
 
-  bool readReg(uint8_t reg, uint8_t& outValue);
+  bool readReg(BNO055Reg reg, uint8_t& outValue);
  
-  bool readRegs(uint8_t reg, uint8_t* data, size_t length);
+  bool readRegs(BNO055Reg reg, uint8_t* data, size_t length);
 
   std::string dev_;
 
@@ -71,6 +71,29 @@ private:
   bool expectChipID();
   
   bool readBytes(uint8_t* data, size_t length);
+
+  int16_t combineInt16(uint8_t lsb, uint8_t msb);
+
+  template<size_t N>
+  bool readInt16Array(
+    BNO055Reg startReg,
+    std::array<int16_t, N>& values)
+  {
+    uint8_t buffer[N * 2];
+
+    if (!readRegs(startReg, buffer, N * 2)) {
+        return false;
+    }
+
+    for (size_t i = 0; i < N; i++) {
+        values[i] = combineInt16(
+            buffer[i * 2],
+            buffer[i * 2 + 1]
+        );
+    }
+
+    return true;
+  }
 };
 
 
