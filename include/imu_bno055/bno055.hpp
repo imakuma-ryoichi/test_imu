@@ -22,8 +22,7 @@ public:
   BNO055(std::string dev, uint8_t addr);
 
   bool init(); 
-  
-  bool readAcceleration(std::array<float, 2>& accValue);
+  bool readAcceleration(std::array<float, 3>& accValue);
   bool readGyroscope(std::array<float, 3>& gyrValue);
   bool readQuaternion(std::array<float, 4>& quatValue);
   bool readEuler(std::array<float, 3>& eulValue); 
@@ -45,6 +44,8 @@ private:
 
   bool readReg(uint8_t reg, uint8_t& outValue);
  
+  bool readRegs(uint8_t reg, uint8_t* data, size_t length);
+
   std::string dev_;
 
   uint8_t addr_;
@@ -68,6 +69,8 @@ private:
   uint8_t toUnit();
   
   bool expectChipID();
+  
+  bool readBytes(uint8_t* data, size_t length);
 };
 
 

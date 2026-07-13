@@ -16,15 +16,15 @@ int main()
 
     std::cout << "init success" << std::endl;
 
-  std::array<float, 2> acc{};
+  std::array<float, 3> acc{};
   std::array<float, 3> gyr{};
   std::array<float, 4> quat{};
-  std::array<float, 3> eul{};
 
   if (imu.readAcceleration(acc)) {
     std::cout << "acc: "
               << acc[0] << ", "
-              << acc[1] << std::endl;
+              << acc[1] << ", "
+              << acc[2] << std::endl;
   }
 
   if (imu.readGyroscope(gyr)) {

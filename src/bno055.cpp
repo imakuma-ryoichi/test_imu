@@ -62,23 +62,7 @@ bool BNO055::init()
   
 bool BNO055::readReg(uint8_t reg, uint8_t& outValue)
   {
-
-    ssize_t writeRet = write(fd_, &reg, 1);//1byte送っている
-  
-    if (writeRet != 1) {
-      perror("write reg");
-      return false;
-    }
-
-    ssize_t readRet = read(fd_, &outValue, 1);
-
-    if (readRet != 1) {
-      perror("read reg");
-      return false;
-    }
-
-    return true;
-    
+    return readRegs(reg, &outValue, 1);
   }
   
 
@@ -179,20 +163,52 @@ bool BNO055::readInt16(BNO055Reg lsbReg, int16_t& rawValue)//boolに変更済み
 
 
 // m/s^2 == /100.0f , mg == /1.0f  
-bool BNO055::readAcceleration(std::array<float, 2>& accValue) {
+bool BNO055::readAcceleration(std::array<float, 3>& accValue) {
 
   constexpr float ACC_SCALE = 1.0f / 100.0f;
 
-  std::array<int16_t, 2> raw;
+  std::array<int16_t, 3> raw;
 
   if (!readInt16(BNO055Reg::ACC_DATA_X_LSB, raw[0])) return false;
   if (!readInt16(BNO055Reg::ACC_DATA_Y_LSB, raw[1])) return false;
+  if (!readInt16(BNO055Reg::ACC_DATA_Y_LSB, raw[2])) return false;
 
   accValue[0] = static_cast<float>(raw[0]) * ACC_SCALE;
   accValue[1] = static_cast<float>(raw[1]) * ACC_SCALE;
+  accValue[2] = static_cast<float>(raw[2]) * ACC_SCALE;
 
   return true;
 }
+
+bool BNO055::readBytes(uint8_t* data, size_t length)
+{
+  ssize_t ret = read(fd_, data, length); 
+
+  if (ret == static_cast<ssize_t>(length)) {
+     perror("read reg");
+     return false;
+  };
+
+  return true;
+}
+
+bool BNO055::readRegs(uint8_t reg, uint8_t* data, size_t length)
+{
+  
+  ssize_t writeRet = write(fd_, &reg, 1);
+
+  if (writeRet != 1)  {
+    perror("write reg");
+    return false;
+  }
+
+  if (!readBytes(data, length)) {
+      return false;
+  }
+
+ return true;
+}
+
 
 //Dps == /16.0f, Rps == /900.0f
 bool BNO055::readGyroscope(std::array<float, 3>& gyrValue) 
