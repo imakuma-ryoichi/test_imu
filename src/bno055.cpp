@@ -148,7 +148,7 @@ int16_t BNO055::combineInt16(uint8_t lsb, uint8_t msb)
     return 
       static_cast<int16_t>(
       (static_cast<uint16_t>(msb) << 8) |
-      static_cast<uint16_t>(lsb)
+       static_cast<uint16_t>(lsb)
     );
 }
 
@@ -276,16 +276,21 @@ bool BNO055::setOprMode(BNO055Mode mode)
 bool BNO055::writeCalibration(const CalibrationData &calibData)
 { 
   if (!setOprMode(BNO055Mode::CONFIG)) return false;
+
+  bool success = true;
   
-  if (!writeOffset(calibData.accOffset, BNO055Reg::ACC_OFFSET_X_LSB)) return false;
-  if (!writeOffset(calibData.gyrOffset, BNO055Reg::GYR_OFFSET_X_LSB)) return false;
-  if (!writeOffset(calibData.magOffset, BNO055Reg::MAG_OFFSET_X_LSB)) return false;
-  if (!writeInt16(toUint8(BNO055Reg::ACC_RADIUS_LSB), calibData.accRadius)) return false;
-  if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calibData.magRadius)) return false;
+  if (!writeOffset(calibData.accOffset, BNO055Reg::ACC_OFFSET_X_LSB)) success = false;
+  if (!writeOffset(calibData.gyrOffset, BNO055Reg::GYR_OFFSET_X_LSB)) success = false;
+  if (!writeOffset(calibData.magOffset, BNO055Reg::MAG_OFFSET_X_LSB)) success = false;
+  if (!writeInt16(toUint8(BNO055Reg::ACC_RADIUS_LSB), calibData.accRadius)) success = false;
+  if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calibData.magRadius)) success = false;
 
-  if (!setOprMode(BNO055Mode::NDOF)) return false;
+  if (!setOprMode(BNO055Mode::NDOF)) {
+    std::cerr << "Warning: Failed to restore NDOF mode." << '\n';
+    return false;
+  }
 
-  return true;
+  return success;
 }
 
 bool BNO055::verifyCalibration(const CalibrationData &calibData)
