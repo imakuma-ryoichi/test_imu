@@ -23,9 +23,4 @@ struct CalibrationData {
 }
 };
 
-struct CalibrationStatus {
-  uint8_t sys;
-  uint8_t gyr;
-  uint8_t acc;
-  uint8_t mag;
-};
+
