@@ -5,20 +5,20 @@
 
 struct CalibrationData {
 
-  std::array<int16_t, 3> accOffset;
-  std::array<int16_t, 3> gyrOffset;
-  std::array<int16_t, 3> magOffset;
+  std::array<int16_t, 3> acc_offset;
+  std::array<int16_t, 3> gyr_offset;
+  std::array<int16_t, 3> mag_offset;
 
-  int16_t accRadius;
-  int16_t magRadius;
+  int16_t acc_radius;
+  int16_t mag_radius;
 
   bool operator==(const CalibrationData& other) const
 {
-    return accOffset == other.accOffset &&
-           gyrOffset == other.gyrOffset &&
-           magOffset == other.magOffset &&
-           accRadius == other.accRadius &&
-           magRadius == other.magRadius;
+    return acc_offset == other.acc_offset &&
+           gyr_offset == other.gyr_offset &&
+           mag_offset == other.mag_offset &&
+           acc_radius == other.acc_radius &&
+           mag_radius == other.mag_radius;
 }
 };
 

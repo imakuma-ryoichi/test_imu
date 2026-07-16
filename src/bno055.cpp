@@ -60,9 +60,9 @@ bool BNO055::init()
 
   }
   
-bool BNO055::readReg(BNO055Reg reg, uint8_t& outValue)
+bool BNO055::readReg(BNO055Reg reg, uint8_t& out_value)
   {
-    return readRegs(reg, &outValue, 1);
+    return readRegs(reg, &out_value, 1);
   }
   
 
@@ -123,21 +123,21 @@ bool BNO055::readReg(BNO055Reg reg, uint8_t& outValue)
       toUint8(BNO055Unit::ACC_UNIT_METER_PER_SECOND_PER_SECOND);
   }
 
-bool BNO055::writeInt16(uint8_t lsbReg, int16_t rawValue)
+bool BNO055::writeInt16(uint8_t lsb_reg, int16_t raw_value)
 {
-  uint16_t value = static_cast<uint16_t>(rawValue);
+  uint16_t value = static_cast<uint16_t>(raw_value);
 
-  uint8_t lsbValue, msbValue;
+  uint8_t lsb_value, msb_value;
   
-  lsbValue = value & 0xFF;
-  msbValue = (value >> 8) & 0xFF;
+  lsb_value = value & 0xFF;
+  msb_value = (value >> 8) & 0xFF;
 
-  uint8_t lsbAddr = lsbReg;
-  uint8_t msbAddr = lsbAddr + 1;
+  uint8_t addr = lsb_reg;
+  uint8_t msb_addr = addr + 1;
 
-  if (!writeReg(lsbAddr, lsbValue)) return false;
+  if (!writeReg(addr, lsb_value)) return false;
 
-  if (!writeReg(msbAddr, msbValue)) return false;
+  if (!writeReg(msb_addr, msb_value)) return false;
 
   return true;
 
@@ -153,7 +153,7 @@ int16_t BNO055::combineInt16(uint8_t lsb, uint8_t msb)
 }
 
 // m/s^2 == /100.0f , mg == /1.0f  
-bool BNO055::readAcceleration(std::array<float, 3>& accValue) {
+bool BNO055::readAcceleration(std::array<float, 3>& acc_value) {
 
   constexpr float ACC_SCALE = 1.0f / 100.0f;
 
@@ -161,9 +161,9 @@ bool BNO055::readAcceleration(std::array<float, 3>& accValue) {
 
   if (!readInt16Array(BNO055Reg::ACC_DATA_X_LSB, raw)) return false;
   
-  accValue[0] = static_cast<float>(raw[0]) * ACC_SCALE;
-  accValue[1] = static_cast<float>(raw[1]) * ACC_SCALE;
-  accValue[2] = static_cast<float>(raw[2]) * ACC_SCALE;
+  acc_value[0] = static_cast<float>(raw[0]) * ACC_SCALE;
+  acc_value[1] = static_cast<float>(raw[1]) * ACC_SCALE;
+  acc_value[2] = static_cast<float>(raw[2]) * ACC_SCALE;
 
   return true;
 }
@@ -180,14 +180,14 @@ bool BNO055::readBytes(uint8_t* data, size_t length)
 bool BNO055::readRegs(BNO055Reg reg, uint8_t* data, size_t length)
 {
   
-  uint8_t rawReg = toUint8(reg);
+  uint8_t raw_reg = toUint8(reg);
   
-  ssize_t writeRet;
+  ssize_t write_ret;
 
   for (int i = 0; i < MAX_RETRY; i++) {
-    writeRet = write(fd_, &rawReg, 1);
+    write_ret = write(fd_, &raw_reg, 1);
 
-    if (writeRet != 1) continue;//後でエラー吐かせる関数を作る
+    if (write_ret != 1) continue;//後でエラー吐かせる関数を作る
     if (!readBytes(data, length)) continue;
   
     return true;
@@ -199,7 +199,7 @@ bool BNO055::readRegs(BNO055Reg reg, uint8_t* data, size_t length)
 
 
 //Dps == /16.0f, Rps == /900.0f
-bool BNO055::readGyroscope(std::array<float, 3>& gyrValue) 
+bool BNO055::readGyroscope(std::array<float, 3>& gyr_value) 
 {
   constexpr float GYR_SCALE = 1.0f / 900.0f;
 
@@ -207,15 +207,15 @@ bool BNO055::readGyroscope(std::array<float, 3>& gyrValue)
 
   if (!readInt16Array(BNO055Reg::GYR_DATA_X_LSB, raw)) return false;
 
-  gyrValue[0] = static_cast<float>(raw[0]) * GYR_SCALE;
-  gyrValue[1] = static_cast<float>(raw[1]) * GYR_SCALE;
-  gyrValue[2] = static_cast<float>(raw[2]) * GYR_SCALE;
+  gyr_value[0] = static_cast<float>(raw[0]) * GYR_SCALE;
+  gyr_value[1] = static_cast<float>(raw[1]) * GYR_SCALE;
+  gyr_value[2] = static_cast<float>(raw[2]) * GYR_SCALE;
 
   return true;
 }
 
 // Qua /2^14
-bool BNO055::readQuaternion(std::array<float, 4>& quatValue)
+bool BNO055::readQuaternion(std::array<float, 4>& quat_value)
 {
   constexpr float QUAT_SCALE = 1.0f / static_cast<float>(1 << 14);
 
@@ -223,16 +223,16 @@ bool BNO055::readQuaternion(std::array<float, 4>& quatValue)
 
   if (!readInt16Array(BNO055Reg::QUAT_DATA_W_LSB, raw)) return false;
 
-  quatValue[0] = static_cast<float>(raw[0]) * QUAT_SCALE;
-  quatValue[1] = static_cast<float>(raw[1]) * QUAT_SCALE;
-  quatValue[2] = static_cast<float>(raw[2]) * QUAT_SCALE;
-  quatValue[3] = static_cast<float>(raw[3]) * QUAT_SCALE;
+  quat_value[0] = static_cast<float>(raw[0]) * QUAT_SCALE;
+  quat_value[1] = static_cast<float>(raw[1]) * QUAT_SCALE;
+  quat_value[2] = static_cast<float>(raw[2]) * QUAT_SCALE;
+  quat_value[3] = static_cast<float>(raw[3]) * QUAT_SCALE;
 
   return true;
 }
 
 // degree /16.0f   radians /900.0f
-bool BNO055::readEuler(std::array<float, 3>& eulValue) 
+bool BNO055::readEuler(std::array<float, 3>& eul_value) 
 {
   constexpr float EUL_SCALE = 1.0f / 900.0f;
   //ここの上ymlで追い出すなら使用知らんけど変数名の差異で変更させるだけで行ければ熱そう
@@ -241,9 +241,9 @@ bool BNO055::readEuler(std::array<float, 3>& eulValue)
 
   if (!readInt16Array(BNO055Reg::EUL_DATA_X_LSB, raw)) return false;
 
-  eulValue[0] = static_cast<float>(raw[0]) * EUL_SCALE;
-  eulValue[1] = static_cast<float>(raw[1]) * EUL_SCALE;
-  eulValue[2] = static_cast<float>(raw[2]) * EUL_SCALE;
+  eul_value[0] = static_cast<float>(raw[0]) * EUL_SCALE;
+  eul_value[1] = static_cast<float>(raw[1]) * EUL_SCALE;
+  eul_value[2] = static_cast<float>(raw[2]) * EUL_SCALE;
 
   return true;
 }
@@ -264,26 +264,26 @@ bool BNO055::setOprMode(BNO055Mode mode)
         if (!writeReg(toUint8(BNO055Reg::OPR_MODE), toUint8(mode))) return false;
         
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
-        uint8_t currentMode;
+        uint8_t current_mode;
 
-        if (!readReg(BNO055Reg::OPR_MODE, currentMode)) return false;
-        if ((currentMode & 0x0F) != toUint8(mode)) return false;
+        if (!readReg(BNO055Reg::OPR_MODE, current_mode)) return false;
+        if ((current_mode & 0x0F) != toUint8(mode)) return false;
 //上のifはエラーコードを収納する関数に書かせる
 
     return true;
 }
 
-bool BNO055::writeCalibration(const CalibrationData &calibData)
+bool BNO055::writeCalibration(const CalibrationData &calib_data)
 { 
   if (!setOprMode(BNO055Mode::CONFIG)) return false;
 
   bool success = true;
   
-  if (!writeOffset(calibData.accOffset, BNO055Reg::ACC_OFFSET_X_LSB)) success = false;
-  if (!writeOffset(calibData.gyrOffset, BNO055Reg::GYR_OFFSET_X_LSB)) success = false;
-  if (!writeOffset(calibData.magOffset, BNO055Reg::MAG_OFFSET_X_LSB)) success = false;
-  if (!writeInt16(toUint8(BNO055Reg::ACC_RADIUS_LSB), calibData.accRadius)) success = false;
-  if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calibData.magRadius)) success = false;
+  if (!writeOffset(calib_data.acc_offset, BNO055Reg::ACC_OFFSET_X_LSB)) success = false;
+  if (!writeOffset(calib_data.gyr_offset, BNO055Reg::GYR_OFFSET_X_LSB)) success = false;
+  if (!writeOffset(calib_data.mag_offset, BNO055Reg::MAG_OFFSET_X_LSB)) success = false;
+  if (!writeInt16(toUint8(BNO055Reg::ACC_RADIUS_LSB), calib_data.acc_radius)) success = false;
+  if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calib_data.mag_radius)) success = false;
 
   if (!setOprMode(BNO055Mode::NDOF)) {
     std::cerr << "Warning: Failed to restore NDOF mode." << '\n';
@@ -293,26 +293,26 @@ bool BNO055::writeCalibration(const CalibrationData &calibData)
   return success;
 }
 
-bool BNO055::verifyCalibration(const CalibrationData &calibData)
+bool BNO055::verifyCalibration(const CalibrationData &calib_data)
 {
   
-  CalibrationData calibDataRead;
+  CalibrationData calib_data_read;
 
-  if (!readCalibration(calibDataRead)) return false;
+  if (!readCalibration(calib_data_read)) return false;
 
-  return (calibData == calibDataRead);
+  return (calib_data == calib_data_read);
 }
 
-bool BNO055::writeOffset(const std::array<int16_t, 3>& offsetArray, BNO055Reg baseReg) 
+bool BNO055::writeOffset(const std::array<int16_t, 3>& offset_array, BNO055Reg base_reg) 
 {
   
-  uint8_t xLsbReg = toUint8(baseReg);
-  uint8_t yLsbReg = xLsbReg + 2;
-  uint8_t zLsbReg = yLsbReg + 2;
+  uint8_t x_reg = toUint8(base_reg);
+  uint8_t y_reg = x_reg + 2;
+  uint8_t z_reg = y_reg + 2;
 
-  if (!writeInt16(xLsbReg, offsetArray[0])) return false;
-  if (!writeInt16(yLsbReg, offsetArray[1])) return false;
-  if (!writeInt16(zLsbReg, offsetArray[2])) return false;
+  if (!writeInt16(x_reg, offset_array[0])) return false;
+  if (!writeInt16(y_reg, offset_array[1])) return false;
+  if (!writeInt16(z_reg, offset_array[2])) return false;
   
   return true;
 }
@@ -320,24 +320,24 @@ bool BNO055::writeOffset(const std::array<int16_t, 3>& offsetArray, BNO055Reg ba
 //判定というがそれは分けた方がいいのかどうか微妙なところではある
 
 
-bool BNO055::readCalibration(CalibrationData &calibData)
+bool BNO055::readCalibration(CalibrationData &calib_data)
 {
   
-  if (!readInt16Array(BNO055Reg::ACC_OFFSET_X_LSB, calibData.accOffset)) return false;
+  if (!readInt16Array(BNO055Reg::ACC_OFFSET_X_LSB, calib_data.acc_offset)) return false;
 
-  if (!readInt16Array(BNO055Reg::GYR_OFFSET_X_LSB, calibData.gyrOffset)) return false;
+  if (!readInt16Array(BNO055Reg::GYR_OFFSET_X_LSB, calib_data.gyr_offset)) return false;
   
-  if (!readInt16Array(BNO055Reg::MAG_OFFSET_X_LSB, calibData.magOffset)) return false;
+  if (!readInt16Array(BNO055Reg::MAG_OFFSET_X_LSB, calib_data.mag_offset)) return false;
 
   std::array<int16_t, 1>raw;
 
   if (!readInt16Array(BNO055Reg::ACC_RADIUS_LSB, raw)) return false;
 
-  calibData.accRadius = raw[0];
+  calib_data.acc_radius = raw[0];
 
   if (!readInt16Array(BNO055Reg::MAG_RADIUS_LSB, raw)) return false;
 
-  calibData.magRadius = raw[0];
+  calib_data.mag_radius = raw[0];
   
   return true;
 }
@@ -349,22 +349,22 @@ bool BNO055::isCalib()
     //ここはキャリブレーションできたか有無を知りたいのでretを使用
     //あとaccとかも追加必須
 
-    uint8_t accCalibStatus, gyrCalibStatus, magCalibStatus;
-    uint8_t sysCalibStatus;// システム全体（内部センサフュージョン）のキャリブレーション状態
+    uint8_t acc_calib_status, gyr_calib_status, mag_calib_status;
+    uint8_t sys_calib_status;// システム全体（内部センサフュージョン）のキャリブレーション状態
 
-    uint8_t calibData;
+    uint8_t calib_data;
 
-    if (!readReg(BNO055Reg::CALIB_STAT, calibData)) return false;
+    if (!readReg(BNO055Reg::CALIB_STAT, calib_data)) return false;
     //ここには通信エラーかなんか入るか？いやreadRegであるからいらない
-    sysCalibStatus = (calibData >> SYS_CALIB_BIT_SHIFT) & CALIB_MASK;
-    accCalibStatus = (calibData >> ACC_CALIB_BIT_SHIFT) & CALIB_MASK;//2bit抽出
-    gyrCalibStatus = (calibData >> GYR_CALIB_BIT_SHIFT) & CALIB_MASK;
-    magCalibStatus = calibData & CALIB_MASK;
+    sys_calib_status = (calib_data >> SYS_CALIB_BIT_SHIFT) & CALIB_MASK;
+    acc_calib_status = (calib_data >> ACC_CALIB_BIT_SHIFT) & CALIB_MASK;//2bit抽出
+    gyr_calib_status = (calib_data >> GYR_CALIB_BIT_SHIFT) & CALIB_MASK;
+    mag_calib_status = calib_data & CALIB_MASK;
   
-    if (accCalibStatus != CALIB_APPROPRIATE) ret = false;
-    if (gyrCalibStatus != CALIB_APPROPRIATE) ret = false;
-    if (magCalibStatus != CALIB_APPROPRIATE) ret = false;
-    if (sysCalibStatus != CALIB_APPROPRIATE) ret = false; 
+    if (acc_calib_status != CALIB_APPROPRIATE) ret = false;
+    if (gyr_calib_status != CALIB_APPROPRIATE) ret = false;
+    if (mag_calib_status != CALIB_APPROPRIATE) ret = false;
+    if (sys_calib_status != CALIB_APPROPRIATE) ret = false; 
 
 
   return ret;
