@@ -26,13 +26,15 @@ public:
   bool readGyroscope(std::array<float, 3>& gyrValue);
   bool readQuaternion(std::array<float, 4>& quatValue);
   bool readEuler(std::array<float, 3>& eulValue); 
- 
+
   bool writeCalibration(const CalibrationData &calibData);
   bool readCalibration(CalibrationData &calibData);
 
   bool isCalib();
 
 private:
+  
+  static constexpr int MAX_RETRY = 3;
 
   template <typename T>
   constexpr uint8_t toUint8(T value)
@@ -40,12 +42,10 @@ private:
   return static_cast<uint8_t>(value);
 }
 
-  uint8_t retryCount_ = 0;
-
   bool writeReg(uint8_t reg, uint8_t value);
 
   bool readReg(BNO055Reg reg, uint8_t& outValue);
- 
+
   bool readRegs(BNO055Reg reg, uint8_t* data, size_t length);
 
   std::string dev_;
@@ -55,7 +55,7 @@ private:
   int fd_;
 
   bool setOprMode(BNO055Mode mode);
- 
+
   bool readOprMode();
 
   bool readInt16(BNO055Reg lsbReg, int16_t& outValue);
@@ -76,6 +76,8 @@ private:
 
   int16_t combineInt16(uint8_t lsb, uint8_t msb);
 
+  bool verifyCalibration(const CalibrationData &calibData);
+
   template<size_t N>
   bool readInt16Array(
     BNO055Reg startReg,
@@ -83,9 +85,8 @@ private:
   {
     uint8_t buffer[N * 2];
 
-    if (!readRegs(startReg, buffer, N * 2)) {
-        return false;
-    }
+    if (!readRegs(startReg, buffer, N * 2)) return false;
+
 
     for (size_t i = 0; i < N; i++) {
         values[i] = combineInt16(

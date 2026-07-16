@@ -75,15 +75,18 @@ bool BNO055::readReg(BNO055Reg reg, uint8_t& outValue)
     buf[0] = reg;
     buf[1] = value;
 
-    ret = write (fd_, buf.data(), 2);//2bit 書く
-
-    if (ret != 2) {
-      perror("writeReg failed");
-      return false;
+    for (int i = 0; i < MAX_RETRY; i++) {
+      ret = write (fd_, buf.data(), 2);//2byte 書く
+     
+      if (ret != 2) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10)); 
+        continue;
+      }
+      return true;
     }
   
-  return true; 
-
+    perror("writeReg failed");
+    return false; 
   }
 
 
@@ -142,9 +145,10 @@ bool BNO055::writeInt16(uint8_t lsbReg, int16_t rawValue)
 
 int16_t BNO055::combineInt16(uint8_t lsb, uint8_t msb)
 {
-    return static_cast<int16_t>(
-        (static_cast<uint16_t>(msb) << 8) |
-         static_cast<uint16_t>(lsb)
+    return 
+      static_cast<int16_t>(
+      (static_cast<uint16_t>(msb) << 8) |
+      static_cast<uint16_t>(lsb)
     );
 }
 
@@ -168,10 +172,7 @@ bool BNO055::readBytes(uint8_t* data, size_t length)
 {
   ssize_t ret = read(fd_, data, length); 
 
-  if (ret != static_cast<ssize_t>(length)) {
-    perror("read reg");
-    return false;
-  };
+  if (ret != static_cast<ssize_t>(length)) return false;
 
   return true;
 }
@@ -181,18 +182,19 @@ bool BNO055::readRegs(BNO055Reg reg, uint8_t* data, size_t length)
   
   uint8_t rawReg = toUint8(reg);
   
-  ssize_t writeRet = write(fd_, &rawReg, 1);
+  ssize_t writeRet;
 
-  if (writeRet != 1)  {
-    perror("write reg");
-    return false;
+  for (int i = 0; i < MAX_RETRY; i++) {
+    writeRet = write(fd_, &rawReg, 1);
+
+    if (writeRet != 1) continue;//後でエラー吐かせる関数を作る
+    if (!readBytes(data, length)) continue;
+  
+    return true;
   }
 
-  if (!readBytes(data, length)) {
-      return false;
-  }
-
-  return true;
+  perror("Failed to readRegs");
+  return false;
 }
 
 
@@ -259,59 +261,42 @@ bool BNO055::expectChipID()
 
 bool BNO055::setOprMode(BNO055Mode mode)
 {
-    constexpr int MAX_RETRY = 3;
-
-    for (int i = 0; i < MAX_RETRY; i++) {
-        if (!writeReg(toUint8(BNO055Reg::OPR_MODE), toUint8(mode))) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
-            continue;
-        }
-
+        if (!writeReg(toUint8(BNO055Reg::OPR_MODE), toUint8(mode))) return false;
+        
         std::this_thread::sleep_for(std::chrono::milliseconds(20));
-
         uint8_t currentMode;
 
-        if (!readReg(BNO055Reg::OPR_MODE, currentMode)) {
-          std::this_thread::sleep_for(std::chrono::milliseconds(10));
-          continue;
-        }
+        if (!readReg(BNO055Reg::OPR_MODE, currentMode)) return false;
+        if ((currentMode & 0x0F) != toUint8(mode)) return false;
+//上のifはエラーコードを収納する関数に書かせる
 
-        if ((currentMode & 0x0F) == toUint8(mode)) {
-            return true;
-        }
-    }
-
-    std::cerr << "Failed to set operation mode: "
-              << static_cast<int>(toUint8(mode))
-              << '\n';
-
-    return false;
+    return true;
 }
 
 bool BNO055::writeCalibration(const CalibrationData &calibData)
-{
-  constexpr int MAX_RETRY = 3;
-
-  for (int i = 0; i < MAX_RETRY; i++) {
-
-    if (!setOprMode(BNO055Mode::CONFIG)) continue;
+{ 
+  if (!setOprMode(BNO055Mode::CONFIG)) return false;
   
-    if (!writeOffset(calibData.accOffset, BNO055Reg::ACC_OFFSET_X_LSB)) continue;
-    if (!writeOffset(calibData.gyrOffset, BNO055Reg::GYR_OFFSET_X_LSB)) continue;
-    if (!writeOffset(calibData.magOffset, BNO055Reg::MAG_OFFSET_X_LSB)) continue;
-    if (!writeInt16(toUint8(BNO055Reg::ACC_RADIUS_LSB), calibData.accRadius)) continue;
-    if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calibData.magRadius)) continue;
+  if (!writeOffset(calibData.accOffset, BNO055Reg::ACC_OFFSET_X_LSB)) return false;
+  if (!writeOffset(calibData.gyrOffset, BNO055Reg::GYR_OFFSET_X_LSB)) return false;
+  if (!writeOffset(calibData.magOffset, BNO055Reg::MAG_OFFSET_X_LSB)) return false;
+  if (!writeInt16(toUint8(BNO055Reg::ACC_RADIUS_LSB), calibData.accRadius)) return false;
+  if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calibData.magRadius)) return false;
 
-    if (!setOprMode(BNO055Mode::NDOF)) continue;
+  if (!setOprMode(BNO055Mode::NDOF)) return false;
 
-    return true;
-  }
-
-  return false;
+  return true;
 }
 
+bool BNO055::verifyCalibration(const CalibrationData &calibData)
+{
+  
+  CalibrationData calibDataRead;
 
+  if (!readCalibration(calibDataRead)) return false;
 
+  return (calibData == calibDataRead);
+}
 
 bool BNO055::writeOffset(const std::array<int16_t, 3>& offsetArray, BNO055Reg baseReg) 
 {
@@ -360,12 +345,13 @@ bool BNO055::isCalib()
     //あとaccとかも追加必須
 
     uint8_t accCalibStatus, gyrCalibStatus, magCalibStatus;
+    uint8_t sysCalibStatus;// システム全体（内部センサフュージョン）のキャリブレーション状態
 
     uint8_t calibData;
 
     if (!readReg(BNO055Reg::CALIB_STAT, calibData)) return false;
     //ここには通信エラーかなんか入るか？いやreadRegであるからいらない
-
+    sysCalibStatus = (calibData >> SYS_CALIB_BIT_SHIFT) & CALIB_MASK;
     accCalibStatus = (calibData >> ACC_CALIB_BIT_SHIFT) & CALIB_MASK;//2bit抽出
     gyrCalibStatus = (calibData >> GYR_CALIB_BIT_SHIFT) & CALIB_MASK;
     magCalibStatus = calibData & CALIB_MASK;
@@ -373,17 +359,11 @@ bool BNO055::isCalib()
     if (accCalibStatus != CALIB_APPROPRIATE) ret = false;
     if (gyrCalibStatus != CALIB_APPROPRIATE) ret = false;
     if (magCalibStatus != CALIB_APPROPRIATE) ret = false;
+    if (sysCalibStatus != CALIB_APPROPRIATE) ret = false; 
+
 
   return ret;
   //ここは戻り値を受け取った側で何か出して
   }
-
-
-
-
-
-
-
-
 
 
