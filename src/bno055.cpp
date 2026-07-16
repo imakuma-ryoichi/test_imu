@@ -294,32 +294,19 @@ bool BNO055::writeCalibration(const CalibrationData &calibData)
 
   for (int i = 0; i < MAX_RETRY; i++) {
 
-    if (!setOprMode(BNO055Mode::CONFIG)) {
-      continue;
-    }
+    if (!setOprMode(BNO055Mode::CONFIG)) continue;
+  
+    if (!writeOffset(calibData.accOffset, BNO055Reg::ACC_OFFSET_X_LSB)) continue;
+    if (!writeOffset(calibData.gyrOffset, BNO055Reg::GYR_OFFSET_X_LSB)) continue;
+    if (!writeOffset(calibData.magOffset, BNO055Reg::MAG_OFFSET_X_LSB)) continue;
+    if (!writeInt16(toUint8(BNO055Reg::ACC_RADIUS_LSB), calibData.accRadius)) continue;
+    if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calibData.magRadius)) continue;
 
-    if (!writeOffset(calibData.accOffset, BNO055Reg::ACC_OFFSET_X_LSB))
-      continue;
-
-    if (!writeOffset(calibData.gyrOffset, BNO055Reg::GYR_OFFSET_X_LSB))
-      continue;
-
-    if (!writeOffset(calibData.magOffset, BNO055Reg::MAG_OFFSET_X_LSB))
-      continue;
-
-    if (!writeInt16(toUint8(BNO055Reg::ACC_RADIUS_LSB), calibData.accRadius))
-      continue;
-
-    if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calibData.magRadius))
-      continue;
-
-    if (!setOprMode(BNO055Mode::NDOF))
-      continue;
+    if (!setOprMode(BNO055Mode::NDOF)) continue;
 
     return true;
   }
 
-  std::cerr << "Failed to write calibration\n";
   return false;
 }
 
