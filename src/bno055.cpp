@@ -15,7 +15,7 @@ BNO055::BNO055(std::string dev, uint8_t addr)
 
 bool BNO055::init() 
   {
-   fd_ = open(dev_.c_str(), O_RDWR);
+  fd_ = open(dev_.c_str(), O_RDWR);
     
   if (fd_ == -1) {
     perror("open failed");
@@ -32,19 +32,19 @@ bool BNO055::init()
 
 
   if (!expectChipID()) {
-    std::cerr << "CHIP_ID mismatch" << std::endl;
+    std::cerr << "CHIP_ID mismatch" << '\n';
     close(fd_);
     return false;
   }
 
   if(!setUnit()) {
-    std::cerr << "SET UNIT failed" << std::endl;
+    std::cerr << "SET UNIT failed" << '\n';
     close(fd_);
     return false;
   }
 
   if (!expectSetUnit()) {
-    std::cerr << "UNIT_SEL verification failed" << std::endl;
+    std::cerr << "UNIT_SEL verification failed" << '\n';
     close(fd_);
     return false;
   }
@@ -169,8 +169,8 @@ bool BNO055::readBytes(uint8_t* data, size_t length)
   ssize_t ret = read(fd_, data, length); 
 
   if (ret != static_cast<ssize_t>(length)) {
-     perror("read reg");
-     return false;
+    perror("read reg");
+    return false;
   };
 
   return true;
@@ -192,7 +192,7 @@ bool BNO055::readRegs(BNO055Reg reg, uint8_t* data, size_t length)
       return false;
   }
 
- return true;
+  return true;
 }
 
 
@@ -283,7 +283,7 @@ bool BNO055::setOprMode(BNO055Mode mode)
 
     std::cerr << "Failed to set operation mode: "
               << static_cast<int>(toUint8(mode))
-              << std::endl;
+              << '\n';
 
     return false;
 }
@@ -296,27 +296,27 @@ bool BNO055::writeCalibration(const CalibrationData &calibData)
   }
 
   if (!writeOffset(calibData.accOffset, BNO055Reg::ACC_OFFSET_X_LSB)) {
-    std::cerr << "Failed to write accOffset" << std::endl;
+    std::cerr << "Failed to write accOffset" << '\n';
     return false;
   }
   
   if (!writeOffset(calibData.gyrOffset, BNO055Reg::GYR_OFFSET_X_LSB)) {
-    std::cerr << "Failed to write gyrOffset" << std::endl;
+    std::cerr << "Failed to write gyrOffset" << '\n';
     return false;
   }
 
   if (!writeOffset(calibData.magOffset, BNO055Reg::MAG_OFFSET_X_LSB)) {
-    std::cerr << "Failed to write magOffset" << std::endl;
+    std::cerr << "Failed to write magOffset" << '\n';
     return false;
   }
 
   if (!writeInt16(toUint8(BNO055Reg::ACC_RADIUS_LSB), calibData.accRadius)) {
-    std::cerr << "Failed to write accmeter radius" << std::endl;
+    std::cerr << "Failed to write accmeter radius" << '\n';
     return false;
   }
 
   if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calibData.magRadius)) {
-    std::cerr << "Failed to write gyrmeter radius" << std::endl;
+    std::cerr << "Failed to write gyrmeter radius" << '\n';
     return false;
   }
 
@@ -324,7 +324,8 @@ bool BNO055::writeCalibration(const CalibrationData &calibData)
     return false;
   }
 
-  std::cout << "Succsess write to Calibration" << std::endl;
+  std::cout << "Succsess write to Calibration" << '\n';
+  //これいる？
 
   return true;
 }
@@ -339,9 +340,12 @@ bool BNO055::writeOffset(const std::array<int16_t, 3>& offsetArray, BNO055Reg ba
   if (!writeInt16(xLsbReg, offsetArray[0])) return false;
   if (!writeInt16(yLsbReg, offsetArray[1])) return false;
   if (!writeInt16(zLsbReg, offsetArray[2])) return false;
+ 
   
   return true;
 }
+//値がちゃんと入ったか判定があった方がいいのでは？最初しか動かさないし多分
+//判定というがそれは分けた方がいいのかどうか微妙なところではある
 
 
 bool BNO055::readCalibration(CalibrationData &calibData)
@@ -373,26 +377,23 @@ bool BNO055::isCalib()
     //ここはキャリブレーションできたか有無を知りたいのでretを使用
     //あとaccとかも追加必須
 
-    uint8_t accCalibStatus, gyrCalibStatus;
+    uint8_t accCalibStatus, gyrCalibStatus, magCalibStatus;
 
     uint8_t calibData;
 
     if (!readReg(BNO055Reg::CALIB_STAT, calibData)) return false;
+    //ここには通信エラーかなんか入るか？いやreadRegであるからいらない
 
     accCalibStatus = (calibData >> ACC_CALIB_BIT_SHIFT) & CALIB_MASK;//2bit抽出
     gyrCalibStatus = (calibData >> GYR_CALIB_BIT_SHIFT) & CALIB_MASK;
+    magCalibStatus = calibData & CALIB_MASK;
   
-    if (accCalibStatus != CALIB_APPROPRIATE) {
-      std::cerr << "accCalibStatus is inappropriate" << std::endl;
-      ret = false;
-    }
+    if (accCalibStatus != CALIB_APPROPRIATE) ret = false;
+    if (gyrCalibStatus != CALIB_APPROPRIATE) ret = false;
+    if (magCalibStatus != CALIB_APPROPRIATE) ret = false;
 
-    if (gyrCalibStatus != CALIB_APPROPRIATE) {
-      std::cerr << "gyrCalibStatus is inappropriate" << std::endl;
-      ret = false;
-    }
-
-    return ret;
+  return ret;
+  //ここは戻り値を受け取った側で何か出して
   }
 
 
