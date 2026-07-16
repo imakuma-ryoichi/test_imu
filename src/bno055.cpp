@@ -290,45 +290,41 @@ bool BNO055::setOprMode(BNO055Mode mode)
 
 bool BNO055::writeCalibration(const CalibrationData &calibData)
 {
+  constexpr int MAX_RETRY = 3;
 
-  if (!setOprMode(BNO055Mode::CONFIG)) {
-    return false;
+  for (int i = 0; i < MAX_RETRY; i++) {
+
+    if (!setOprMode(BNO055Mode::CONFIG)) {
+      continue;
+    }
+
+    if (!writeOffset(calibData.accOffset, BNO055Reg::ACC_OFFSET_X_LSB))
+      continue;
+
+    if (!writeOffset(calibData.gyrOffset, BNO055Reg::GYR_OFFSET_X_LSB))
+      continue;
+
+    if (!writeOffset(calibData.magOffset, BNO055Reg::MAG_OFFSET_X_LSB))
+      continue;
+
+    if (!writeInt16(toUint8(BNO055Reg::ACC_RADIUS_LSB), calibData.accRadius))
+      continue;
+
+    if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calibData.magRadius))
+      continue;
+
+    if (!setOprMode(BNO055Mode::NDOF))
+      continue;
+
+    return true;
   }
 
-  if (!writeOffset(calibData.accOffset, BNO055Reg::ACC_OFFSET_X_LSB)) {
-    std::cerr << "Failed to write accOffset" << '\n';
-    return false;
-  }
-  
-  if (!writeOffset(calibData.gyrOffset, BNO055Reg::GYR_OFFSET_X_LSB)) {
-    std::cerr << "Failed to write gyrOffset" << '\n';
-    return false;
-  }
-
-  if (!writeOffset(calibData.magOffset, BNO055Reg::MAG_OFFSET_X_LSB)) {
-    std::cerr << "Failed to write magOffset" << '\n';
-    return false;
-  }
-
-  if (!writeInt16(toUint8(BNO055Reg::ACC_RADIUS_LSB), calibData.accRadius)) {
-    std::cerr << "Failed to write accmeter radius" << '\n';
-    return false;
-  }
-
-  if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calibData.magRadius)) {
-    std::cerr << "Failed to write gyrmeter radius" << '\n';
-    return false;
-  }
-
-  if (!setOprMode(BNO055Mode::NDOF)) {
-    return false;
-  }
-
-  std::cout << "Succsess write to Calibration" << '\n';
-  //これいる？
-
-  return true;
+  std::cerr << "Failed to write calibration\n";
+  return false;
 }
+
+
+
 
 bool BNO055::writeOffset(const std::array<int16_t, 3>& offsetArray, BNO055Reg baseReg) 
 {
@@ -340,7 +336,6 @@ bool BNO055::writeOffset(const std::array<int16_t, 3>& offsetArray, BNO055Reg ba
   if (!writeInt16(xLsbReg, offsetArray[0])) return false;
   if (!writeInt16(yLsbReg, offsetArray[1])) return false;
   if (!writeInt16(zLsbReg, offsetArray[2])) return false;
- 
   
   return true;
 }

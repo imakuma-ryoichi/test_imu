@@ -2,8 +2,6 @@
 #include <cstdint>
 #include <iostream>
 
-constexpr uint8_t EXPECT_CHIP_ID = 0xA0;//yml追い出し
-
 
 
 enum class BNO055Mode : uint8_t {
@@ -67,7 +65,7 @@ enum class BNO055Reg : uint8_t {
   GYR_OFFSET_X_LSB = 0x61,
   GYR_OFFSET_Y_LSB = 0x63,
   GYR_OFFSET_Z_LSB = 0x65,
- 
+
   //mag offset
   MAG_OFFSET_X_LSB = 0x5B,
   MAG_OFFSET_Y_LSB = 0x5D,
@@ -96,4 +94,6 @@ namespace {
   constexpr uint8_t CALIB_APPROPRIATE = 3;//CALIB_DONE より　こっちの方がいいのでは？
   constexpr uint8_t ACC_CALIB_BIT_SHIFT = 2;
   constexpr uint8_t GYR_CALIB_BIT_SHIFT = 4;
+  
+  constexpr uint8_t EXPECT_CHIP_ID = 0xA0;//yml追い出し
 }
