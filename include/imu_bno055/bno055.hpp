@@ -28,6 +28,7 @@ public:
   bool readQuaternion(std::array<float, 4>& quatValue);
   bool readEuler(std::array<float, 3>& eulValue); 
 
+  bool readCalibrationStatus(CalibrationStatus& status);
   bool readCalibration(CalibrationData &calibData);
   bool loadCalibration(const CalibrationData &calib_data, bool& imu_available);
 

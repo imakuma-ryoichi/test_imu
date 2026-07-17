@@ -53,19 +53,18 @@ bool BNO055::init()
     close(fd_);
     return false;
   }
-
-BNO055::~BNO055()
-{
-    if (fd_ >= 0)
-        close(fd_);
-}
-
   std::this_thread::sleep_for(std::chrono::milliseconds(100)); 
   
   return true;
 
   }
-  
+ 
+BNO055::~BNO055()
+{
+    if (fd_ >= 0) close(fd_);
+}
+
+ 
 bool BNO055::readReg(BNO055Reg reg, uint8_t& out_value)
   {
     return readRegs(reg, &out_value, 1);
@@ -391,10 +390,10 @@ bool BNO055::isCalib()
 
     if (!readCalibrationStatus(status)) return false;
 
-    return (status.sys == CALIB_APPROPRIATE && 
-            status.acc == CALIB_APPROPRIATE && 
-            status.gyr == CALIB_APPROPRIATE &&
-            status.mag == CALIB_APPROPRIATE ); 
+    return (status.sys == CALIB_COMPLEATE && 
+            status.acc == CALIB_COMPLEATE && 
+            status.gyr == CALIB_COMPLEATE &&
+            status.mag == CALIB_COMPLEATE ); 
 
     //ここは戻り値を受け取った側で何か出して
   }
