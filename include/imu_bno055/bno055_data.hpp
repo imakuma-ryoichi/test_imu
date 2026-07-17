@@ -20,6 +20,7 @@ struct CalibrationData {
            acc_radius == other.acc_radius &&
            mag_radius == other.mag_radius;
 }
+//そもそもしっかり書き込めているのかとか関数作る必要性があるのか
 };
 
 struct IMUData {
@@ -27,6 +28,7 @@ struct IMUData {
   std::array<float, 3> gyroscope;
   std::array<float, 4> quaternion;
   std::array<float, 3> euler;
-  bool imu_available;//IMUが正常に動作しているかどうかのフラグ
+  bool imu_available = true;//IMUが正常に動作しているかどうかのフラグ(e.g.modeが元に戻らなかった)
+  bool is_valid = true;//今回の値が全てちゃんと取れているかのフラグ
 };
 

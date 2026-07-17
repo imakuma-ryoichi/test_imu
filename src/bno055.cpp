@@ -151,9 +151,37 @@ int16_t BNO055::combineInt16(uint8_t lsb, uint8_t msb)
        static_cast<uint16_t>(lsb)
     );
 }
-
 // m/s^2 == /100.0f , mg == /1.0f  
-bool BNO055::readAcceleration(std::array<float, 3>& acc_value) {
+void BNO055::readIMUData(IMUData& data) 
+{
+
+  if (!readAcceleration(data.acceleration)) {
+    data.is_valid = false;
+    return;
+  }
+
+  if (!readGyroscope(data.gyroscope)) {
+    data.is_valid = false;
+    return;
+  }
+
+  if (!readQuaternion(data.quaternion)) {
+    data.is_valid = false;
+    return;
+  }
+  
+  if (!readEuler(data.euler)) {
+    data.is_valid = false;
+    return;
+  }
+
+  data.is_valid = true;
+
+  return;
+}
+
+bool BNO055::readAcceleration(std::array<float, 3>& acc_value) 
+{
 
   constexpr float ACC_SCALE = 1.0f / 100.0f;
 
@@ -273,7 +301,7 @@ bool BNO055::setOprMode(BNO055Mode mode)
     return true;
 }
 
-bool BNO055::writeCalibration(const CalibrationData &calib_data)
+bool BNO055::writeCalibration(const CalibrationData &calib_data, bool& imu_available)
 { 
   if (!setOprMode(BNO055Mode::CONFIG)) return false;
 
@@ -286,10 +314,12 @@ bool BNO055::writeCalibration(const CalibrationData &calib_data)
   if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calib_data.mag_radius)) success = false;
 
   if (!setOprMode(BNO055Mode::NDOF)) {
-    std::cerr << "Warning: Failed to restore NDOF mode." << '\n';
+    std::cerr << "Error: Failed to restore NDOF mode." << '\n';
+    imu_available = false;
     return false;
   }
 
+  imu_available = true;
   return success;
 }
 

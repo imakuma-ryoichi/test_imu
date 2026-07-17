@@ -27,7 +27,7 @@ public:
   bool readQuaternion(std::array<float, 4>& quatValue);
   bool readEuler(std::array<float, 3>& eulValue); 
 
-  bool writeCalibration(const CalibrationData &calibData);
+  bool writeCalibration(const CalibrationData &calibData, bool& imu_available);
   bool readCalibration(CalibrationData &calibData);
 
   bool isCalib();
@@ -47,6 +47,8 @@ private:
   bool readReg(BNO055Reg reg, uint8_t& outValue);
 
   bool readRegs(BNO055Reg reg, uint8_t* data, size_t length);
+
+  void readIMUData(IMUData& data);
 
   std::string dev_;
 
