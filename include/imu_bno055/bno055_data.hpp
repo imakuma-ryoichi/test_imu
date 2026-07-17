@@ -42,13 +42,22 @@ struct CalibrationStatus {//詳細な情報がほしいなら使って
     uint8_t mag;
 };
 
+struct UnitConfig
+{
+    BNO055Unit acceleration;
+    BNO055Unit gyro;
+    BNO055Unit euler;
+};
+
+
 struct BNO055Config
 {
     std::string device;
     uint8_t address;
 
     BNO055Mode mode;
-    BNO055Unit unit;
+
+    UnitConfig unit;
 
     CalibrationData calibration;
 };
