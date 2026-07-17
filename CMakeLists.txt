@@ -12,6 +12,7 @@ find_package(rclcpp REQUIRED)
 # 実行ファイル
 add_executable(bno055_node
   src/bno055.cpp
+  src/bno055_config.cpp
   src/imu_node.cpp
 )
 
@@ -37,6 +38,11 @@ install(TARGETS
 
 install(DIRECTORY include/
   DESTINATION include
+)
+
+# 設定ファイル
+install(DIRECTORY config/
+  DESTINATION share/${PROJECT_NAME}/config
 )
 
 ament_package()

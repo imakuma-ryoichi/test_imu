@@ -1,0 +1,19 @@
+bno055:
+  i2c:
+    device: "/dev/i2c-1"
+    address: 40
+
+  mode: "NDOF"
+
+  unit:
+    acceleration: "MPS2"
+    gyro: "RPS"
+    euler: "RAD"
+
+  calibration:
+    acc_offset: [0, 0, 0]
+    gyr_offset: [0, 0, 0]
+    mag_offset: [0, 0, 0]
+
+    acc_radius: 0
+    mag_radius: 0

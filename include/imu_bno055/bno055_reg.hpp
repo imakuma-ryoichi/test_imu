@@ -13,16 +13,16 @@ enum class BNO055Mode : uint8_t {
 enum class BNO055Unit : uint8_t {
 
   //EUL_Unit
-  EUL_UNIT_DEGREES = 0,
-  EUL_UNIT_RADIANS = 1,
+  EUL_UNIT_DEGREES = 0x00,
+  EUL_UNIT_RADIANS = 0x01,
 
   //GYR_Unit
-  GYR_UNIT_DPS = 0,
-  GYR_UNIT_RPS = 1,
+  GYR_UNIT_DPS = 0x00,
+  GYR_UNIT_RPS = 0x01,
 
   //ACC_Unit
-  ACC_UNIT_METER_PER_SECOND_PER_SECOND = 0,
-  ACC_UNIT_MG = 1,
+  ACC_UNIT_METER_PER_SECOND_PER_SECOND = 0x00,
+  ACC_UNIT_MG = 0x01,
   
 };
 

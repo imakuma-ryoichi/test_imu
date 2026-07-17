@@ -1,7 +1,10 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include <array>
+
+#include "imu_bno055/bno055_reg.hpp"
 
 struct CalibrationData {
 
@@ -28,7 +31,7 @@ struct IMUData {
   std::array<float, 3> gyroscope;
   std::array<float, 4> quaternion;
   std::array<float, 3> euler;
-  bool imu_available = true;//IMUが正常に動作しているかどうかのフラグ(e.g.modeが元に戻らなかった)
+  bool imu_ready = true;//IMUが正常に動作しているかどうかのフラグ(e.g.modeが元に戻らなかった)
   bool is_valid = true;//今回の値が全てちゃんと取れているかのフラグ
 };
 
@@ -37,4 +40,15 @@ struct CalibrationStatus {//詳細な情報がほしいなら使って
     uint8_t gyr;
     uint8_t acc;
     uint8_t mag;
+};
+
+struct BNO055Config
+{
+    std::string device;
+    uint8_t address;
+
+    BNO055Mode mode;
+    BNO055Unit unit;
+
+    CalibrationData calibration;
 };

@@ -318,7 +318,7 @@ bool BNO055::writeCalibration(const CalibrationData &calib_data)
   return true;
 }
 
-bool BNO055::loadCalibration(const CalibrationData &calib_data, bool& imu_available)
+bool BNO055::loadCalibration(const CalibrationData &calib_data, bool& imu_ready)
 {
   if (!setOprMode(BNO055Mode::CONFIG)) return false;
 
@@ -326,11 +326,11 @@ bool BNO055::loadCalibration(const CalibrationData &calib_data, bool& imu_availa
 
   if (!setOprMode(BNO055Mode::NDOF)) {
     std::cerr << "Error: Failed to restore NDOF mode." << '\n';
-    imu_available = false;
+    imu_ready = false;
     return false;
   }
 
-  imu_available = true;
+  imu_ready = true;
   return success;
 }
 
