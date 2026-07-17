@@ -7,6 +7,7 @@ endif()
 
 # 必要なパッケージ
 find_package(ament_cmake REQUIRED)
+find_package(yaml-cpp REQUIRED)
 find_package(rclcpp REQUIRED)
 
 # 実行ファイル
@@ -22,6 +23,9 @@ target_include_directories(bno055_node PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 
+target_link_libraries(bno055_node
+  yaml-cpp
+)
 # C++17
 target_compile_features(bno055_node PUBLIC cxx_std_17)
 
