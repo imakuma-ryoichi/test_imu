@@ -27,16 +27,23 @@ int main()
 
 
     CalibrationData calib_data;
+    IMUData imu_data;
 
 
     // IMUからキャリブレーション値取得
-    if (!imu.readCalibration(calib_data)) {
+    if (!imu.readCalibration(calib_data, imu_data.imu_ready)) {
         std::cerr << "Failed to read calibration\n";
         return 1;
     }
 
 
     std::cout << "Calibration read successfully\n";
+
+
+    if (!imu_data.imu_ready) {
+        std::cerr << "IMU is not ready\n";
+        return 1;
+    }
 
 
     // YAMLへ保存
@@ -53,17 +60,14 @@ int main()
     BNO055Config config = loadConfig(config_path);
 
 
-    bool imu_ready;
-
-
     // IMUへ復元
-    if (!imu.loadCalibration(config.calibration, imu_ready)) {
-        std::cerr << "Failed to load calibration\n";
+    if (!imu.applyCalibration(config.calibration, imu_data.imu_ready)) {
+        std::cerr << "Failed to apply calibration\n";
         return 1;
     }
 
 
-    if (!imu_ready) {
+    if (!imu_data.imu_ready) {
         std::cerr << "IMU is not ready\n";
         return 1;
     }
@@ -72,8 +76,15 @@ int main()
     // 読み書き確認
     CalibrationData verify_data;
 
-    if (!imu.readCalibration(verify_data)) {
+
+    if (!imu.readCalibration(verify_data, imu_data.imu_ready)) {
         std::cerr << "Failed to verify calibration\n";
+        return 1;
+    }
+
+
+    if (!imu_data.imu_ready) {
+        std::cerr << "IMU is not ready after verify\n";
         return 1;
     }
 

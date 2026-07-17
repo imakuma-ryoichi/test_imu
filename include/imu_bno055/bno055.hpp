@@ -29,8 +29,8 @@ public:
   bool readEuler(std::array<float, 3>& eulValue); 
 
   bool readCalibrationStatus(CalibrationStatus& status);
-  bool readCalibration(CalibrationData &calibData);
-  bool loadCalibration(const CalibrationData &calib_data, bool& imu_available);
+  bool applyCalibration(const CalibrationData &calib_data, bool& imu_ready);
+  bool readCalibration(CalibrationData &calib_data, bool& imu_ready);
 
   bool isCalib();
 
@@ -51,6 +51,8 @@ private:
   bool readRegs(BNO055Reg reg, uint8_t* data, size_t length);
 
   void readIMUData(IMUData& data);
+
+  bool readCalibrationData(CalibrationData &calibData);
 
   std::string dev_;
 
@@ -82,7 +84,7 @@ private:
 
   bool writeCalibration(const CalibrationData &calibData);
 
-  bool verifyCalibration(const CalibrationData &calibData);
+  bool verifyCalibration(const CalibrationData &calibData, bool& imu_ready);
 
   template<size_t N>
   bool readInt16Array(

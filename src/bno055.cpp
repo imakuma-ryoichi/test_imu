@@ -318,7 +318,7 @@ bool BNO055::writeCalibration(const CalibrationData &calib_data)
   return true;
 }
 
-bool BNO055::loadCalibration(const CalibrationData &calib_data, bool& imu_ready)
+bool BNO055::applyCalibration(const CalibrationData &calib_data, bool& imu_ready)
 {
   if (!setOprMode(BNO055Mode::CONFIG)) return false;
 
@@ -334,12 +334,28 @@ bool BNO055::loadCalibration(const CalibrationData &calib_data, bool& imu_ready)
   return success;
 }
 
-bool BNO055::verifyCalibration(const CalibrationData &calib_data)
+bool BNO055::readCalibration(CalibrationData &calib_data, bool& imu_ready)
+{
+  if (!setOprMode(BNO055Mode::CONFIG)) return false;
+
+  bool success = readCalibrationData(calib_data);
+
+  if (!setOprMode(BNO055Mode::NDOF)) {
+    std::cerr << "Error: Failed to restore NDOF mode." << '\n';
+    imu_ready = false;
+    return false;
+  }
+
+  imu_ready = true;
+  return success;
+}
+
+bool BNO055::verifyCalibration(const CalibrationData &calib_data, bool& imu_ready)
 {
   
   CalibrationData calib_data_read;
 
-  if (!readCalibration(calib_data_read)) return false;
+  if (!readCalibration(calib_data_read, imu_ready)) return false;
 
   return (calib_data == calib_data_read);
 }
@@ -361,14 +377,11 @@ bool BNO055::writeOffset(const std::array<int16_t, 3>& offset_array, BNO055Reg b
 //判定というがそれは分けた方がいいのかどうか微妙なところではある
 
 
-bool BNO055::readCalibration(CalibrationData &calib_data)
+bool BNO055::readCalibrationData(CalibrationData &calib_data)
 {
-  if (!setOprMode(BNO055Mode::CONFIG)) return false; 
 
   if (!readInt16Array(BNO055Reg::ACC_OFFSET_X_LSB, calib_data.acc_offset)) return false;
-
   if (!readInt16Array(BNO055Reg::GYR_OFFSET_X_LSB, calib_data.gyr_offset)) return false;
-  
   if (!readInt16Array(BNO055Reg::MAG_OFFSET_X_LSB, calib_data.mag_offset)) return false;
 
   std::array<int16_t, 1>raw;
@@ -380,9 +393,10 @@ bool BNO055::readCalibration(CalibrationData &calib_data)
   if (!readInt16Array(BNO055Reg::MAG_RADIUS_LSB, raw)) return false;
 
   calib_data.mag_radius = raw[0];
-  
-  return setOprMode(BNO055Mode::NDOF);
+
+  return true;
 }
+
 
 bool BNO055::isCalib()
   {
