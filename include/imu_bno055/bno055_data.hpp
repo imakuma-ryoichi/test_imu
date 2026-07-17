@@ -32,3 +32,9 @@ struct IMUData {
   bool is_valid = true;//今回の値が全てちゃんと取れているかのフラグ
 };
 
+struct CalibrationStatus {//詳細な情報がほしいなら使って
+    uint8_t sys;
+    uint8_t gyr;
+    uint8_t acc;
+    uint8_t mag;
+};

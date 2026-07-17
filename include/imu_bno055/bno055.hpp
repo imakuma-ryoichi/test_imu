@@ -27,8 +27,8 @@ public:
   bool readQuaternion(std::array<float, 4>& quatValue);
   bool readEuler(std::array<float, 3>& eulValue); 
 
-  bool writeCalibration(const CalibrationData &calibData, bool& imu_available);
   bool readCalibration(CalibrationData &calibData);
+  bool loadCalibration(const CalibrationData &calib_data, bool& imu_available);
 
   bool isCalib();
 
@@ -77,6 +77,8 @@ private:
   bool readBytes(uint8_t* data, size_t length);
 
   int16_t combineInt16(uint8_t lsb, uint8_t msb);
+
+  bool writeCalibration(const CalibrationData &calibData);
 
   bool verifyCalibration(const CalibrationData &calibData);
 

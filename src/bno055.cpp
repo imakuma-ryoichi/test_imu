@@ -289,29 +289,35 @@ bool BNO055::expectChipID()
 
 bool BNO055::setOprMode(BNO055Mode mode)
 {
-        if (!writeReg(toUint8(BNO055Reg::OPR_MODE), toUint8(mode))) return false;
+  if (!writeReg(toUint8(BNO055Reg::OPR_MODE), toUint8(mode))) return false;
         
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+  std::this_thread::sleep_for(std::chrono::milliseconds(20));
         uint8_t current_mode;
 
-        if (!readReg(BNO055Reg::OPR_MODE, current_mode)) return false;
-        if ((current_mode & 0x0F) != toUint8(mode)) return false;
+  if (!readReg(BNO055Reg::OPR_MODE, current_mode)) return false;
+  if ((current_mode & 0x0F) != toUint8(mode)) return false;
 //上のifはエラーコードを収納する関数に書かせる
 
-    return true;
+  return true;
 }
 
-bool BNO055::writeCalibration(const CalibrationData &calib_data, bool& imu_available)
+bool BNO055::writeCalibration(const CalibrationData &calib_data)
 { 
+
+  if (!writeOffset(calib_data.acc_offset, BNO055Reg::ACC_OFFSET_X_LSB)) return false;
+  if (!writeOffset(calib_data.gyr_offset, BNO055Reg::GYR_OFFSET_X_LSB)) return false;
+  if (!writeOffset(calib_data.mag_offset, BNO055Reg::MAG_OFFSET_X_LSB)) return false;
+  if (!writeInt16(toUint8(BNO055Reg::ACC_RADIUS_LSB), calib_data.acc_radius)) return false;
+  if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calib_data.mag_radius)) return false;
+
+  return true;
+}
+
+bool BNO055::loadCalibration(const CalibrationData &calib_data, bool& imu_available)
+{
   if (!setOprMode(BNO055Mode::CONFIG)) return false;
 
-  bool success = true;
-  
-  if (!writeOffset(calib_data.acc_offset, BNO055Reg::ACC_OFFSET_X_LSB)) success = false;
-  if (!writeOffset(calib_data.gyr_offset, BNO055Reg::GYR_OFFSET_X_LSB)) success = false;
-  if (!writeOffset(calib_data.mag_offset, BNO055Reg::MAG_OFFSET_X_LSB)) success = false;
-  if (!writeInt16(toUint8(BNO055Reg::ACC_RADIUS_LSB), calib_data.acc_radius)) success = false;
-  if (!writeInt16(toUint8(BNO055Reg::MAG_RADIUS_LSB), calib_data.mag_radius)) success = false;
+  bool success = writeCalibration(calib_data);
 
   if (!setOprMode(BNO055Mode::NDOF)) {
     std::cerr << "Error: Failed to restore NDOF mode." << '\n';
@@ -375,10 +381,6 @@ bool BNO055::readCalibration(CalibrationData &calib_data)
 bool BNO055::isCalib()
   {
 
-    bool ret = true;
-    //ここはキャリブレーションできたか有無を知りたいのでretを使用
-    //あとaccとかも追加必須
-
     uint8_t acc_calib_status, gyr_calib_status, mag_calib_status;
     uint8_t sys_calib_status;// システム全体（内部センサフュージョン）のキャリブレーション状態
 
@@ -391,14 +393,24 @@ bool BNO055::isCalib()
     gyr_calib_status = (calib_data >> GYR_CALIB_BIT_SHIFT) & CALIB_MASK;
     mag_calib_status = calib_data & CALIB_MASK;
   
-    if (acc_calib_status != CALIB_APPROPRIATE) ret = false;
-    if (gyr_calib_status != CALIB_APPROPRIATE) ret = false;
-    if (mag_calib_status != CALIB_APPROPRIATE) ret = false;
-    if (sys_calib_status != CALIB_APPROPRIATE) ret = false; 
+    return (acc_calib_status == CALIB_APPROPRIATE && 
+            gyr_calib_status == CALIB_APPROPRIATE && 
+            mag_calib_status == CALIB_APPROPRIATE &&
+            sys_calib_status == CALIB_APPROPRIATE ); 
 
-
-  return ret;
-  //ここは戻り値を受け取った側で何か出して
+    //ここは戻り値を受け取った側で何か出して
   }
+
+//このなかにisCalibを入れたって良い
+bool BNO055::readCalibrationStatus(CalibrationStatus& sutatus) 
+{
+  
+}
+
+
+
+
+
+
 
 
