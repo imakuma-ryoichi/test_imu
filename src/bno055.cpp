@@ -363,7 +363,8 @@ bool BNO055::writeOffset(const std::array<int16_t, 3>& offset_array, BNO055Reg b
 
 bool BNO055::readCalibration(CalibrationData &calib_data)
 {
-  
+  if (!setOprMode(BNO055Mode::CONFIG)) return false; 
+
   if (!readInt16Array(BNO055Reg::ACC_OFFSET_X_LSB, calib_data.acc_offset)) return false;
 
   if (!readInt16Array(BNO055Reg::GYR_OFFSET_X_LSB, calib_data.gyr_offset)) return false;
@@ -380,7 +381,7 @@ bool BNO055::readCalibration(CalibrationData &calib_data)
 
   calib_data.mag_radius = raw[0];
   
-  return true;
+  return setOprMode(BNO055Mode::NDOF);
 }
 
 bool BNO055::isCalib()

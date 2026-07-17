@@ -4,6 +4,7 @@
 #include <string>
 #include <yaml-cpp/yaml.h>
 #include <stdexcept>
+#include <fstream>
 
 
 BNO055Config loadConfig(const std::string& path)
@@ -25,10 +26,55 @@ BNO055Config loadConfig(const std::string& path)
     config.unit.gyro = parseGyrUnit(bno055["unit"]["gyro"].as<std::string>());
 
     config.unit.euler = parseEulUnit(bno055["unit"]["euler"].as<std::string>());
-    
+
+    config.calibration.acc_offset[0] = bno055["calibration"]["acc_offset"][0].as<int16_t>();
+    config.calibration.acc_offset[1] = bno055["calibration"]["acc_offset"][1].as<int16_t>();
+    config.calibration.acc_offset[2] = bno055["calibration"]["acc_offset"][2].as<int16_t>();
+
+    config.calibration.gyr_offset[0] = bno055["calibration"]["gyr_offset"][0].as<int16_t>();
+    config.calibration.gyr_offset[1] = bno055["calibration"]["gyr_offset"][1].as<int16_t>();
+    config.calibration.gyr_offset[2] = bno055["calibration"]["gyr_offset"][2].as<int16_t>();
+
+    config.calibration.mag_offset[0] = bno055["calibration"]["mag_offset"][0].as<int16_t>();
+    config.calibration.mag_offset[1] = bno055["calibration"]["mag_offset"][1].as<int16_t>();
+    config.calibration.mag_offset[2] = bno055["calibration"]["mag_offset"][2].as<int16_t>();
+
+    config.calibration.acc_radius = bno055["calibration"]["acc_radius"].as<int16_t>();
+
+    config.calibration.mag_radius = bno055["calibration"]["mag_radius"].as<int16_t>();   
     return config;
 }
 
+bool saveConfig(const std::string& path, const CalibrationData& calib_data)
+{
+    YAML::Node root = YAML::LoadFile(path);
+
+    auto calibration = root["bno055"]["calibration"];
+
+    calibration["acc_offset"][0] = calib_data.acc_offset[0];
+    calibration["acc_offset"][1] = calib_data.acc_offset[1];
+    calibration["acc_offset"][2] = calib_data.acc_offset[2];
+
+    calibration["gyr_offset"][0] = calib_data.gyr_offset[0];
+    calibration["gyr_offset"][1] = calib_data.gyr_offset[1];
+    calibration["gyr_offset"][2] = calib_data.gyr_offset[2];
+
+    calibration["mag_offset"][0] = calib_data.mag_offset[0];
+    calibration["mag_offset"][1] = calib_data.mag_offset[1];
+    calibration["mag_offset"][2] = calib_data.mag_offset[2];
+
+    calibration["acc_radius"] = calib_data.acc_radius;
+    calibration["mag_radius"] = calib_data.mag_radius;
+
+
+    std::ofstream fout(path);
+
+    if (!fout) return false;
+
+    fout << root;
+
+    return true;
+}
 BNO055Mode parseMode(const std::string& value)
 {
     if (value == "CONFIG") return BNO055Mode::CONFIG;

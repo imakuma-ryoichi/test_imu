@@ -10,4 +10,6 @@ BNO055Unit parseAccUnit(const std::string& value);
 
 BNO055Unit parseGyrUnit(const std::string& value);
 
+bool saveConfig(const std::string& path, const CalibrationData& calib_data);
+
 BNO055Unit parseEulUnit(const std::string& value);
