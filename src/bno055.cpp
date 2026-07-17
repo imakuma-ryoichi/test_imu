@@ -53,7 +53,13 @@ bool BNO055::init()
     close(fd_);
     return false;
   }
-  
+
+BNO055::~BNO055()
+{
+    if (fd_ >= 0)
+        close(fd_);
+}
+
   std::this_thread::sleep_for(std::chrono::milliseconds(100)); 
   
   return true;
@@ -380,31 +386,33 @@ bool BNO055::readCalibration(CalibrationData &calib_data)
 
 bool BNO055::isCalib()
   {
+    
+    CalibrationStatus status;
 
-    uint8_t acc_calib_status, gyr_calib_status, mag_calib_status;
-    uint8_t sys_calib_status;// システム全体（内部センサフュージョン）のキャリブレーション状態
+    if (!readCalibrationStatus(status)) return false;
 
-    uint8_t calib_data;
-
-    if (!readReg(BNO055Reg::CALIB_STAT, calib_data)) return false;
-    //ここには通信エラーかなんか入るか？いやreadRegであるからいらない
-    sys_calib_status = (calib_data >> SYS_CALIB_BIT_SHIFT) & CALIB_MASK;
-    acc_calib_status = (calib_data >> ACC_CALIB_BIT_SHIFT) & CALIB_MASK;//2bit抽出
-    gyr_calib_status = (calib_data >> GYR_CALIB_BIT_SHIFT) & CALIB_MASK;
-    mag_calib_status = calib_data & CALIB_MASK;
-  
-    return (acc_calib_status == CALIB_APPROPRIATE && 
-            gyr_calib_status == CALIB_APPROPRIATE && 
-            mag_calib_status == CALIB_APPROPRIATE &&
-            sys_calib_status == CALIB_APPROPRIATE ); 
+    return (status.sys == CALIB_APPROPRIATE && 
+            status.acc == CALIB_APPROPRIATE && 
+            status.gyr == CALIB_APPROPRIATE &&
+            status.mag == CALIB_APPROPRIATE ); 
 
     //ここは戻り値を受け取った側で何か出して
   }
 
 //このなかにisCalibを入れたって良い
-bool BNO055::readCalibrationStatus(CalibrationStatus& sutatus) 
+bool BNO055::readCalibrationStatus(CalibrationStatus& status) 
 {
-  
+
+    uint8_t calib_data;
+
+    if (!readReg(BNO055Reg::CALIB_STAT, calib_data)) return false;
+    //ここには通信エラーかなんか入るか？いやreadRegであるからいらない
+    status.sys = (calib_data >> SYS_CALIB_BIT_SHIFT) & CALIB_MASK;
+    status.acc = (calib_data >> ACC_CALIB_BIT_SHIFT) & CALIB_MASK;//2bit抽出
+    status.gyr = (calib_data >> GYR_CALIB_BIT_SHIFT) & CALIB_MASK;
+    status.mag = calib_data & CALIB_MASK;
+
+    return true; 
 }
 
 

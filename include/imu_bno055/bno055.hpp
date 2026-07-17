@@ -20,6 +20,7 @@ class BNO055
 public:
 
   BNO055(std::string dev, uint8_t addr);
+  ~BNO055();
 
   bool init(); 
   bool readAcceleration(std::array<float, 3>& accValue);
