@@ -27,6 +27,7 @@ bool BNO055::init()
   if (ret == -1) {
     perror("ioctl failed");
     close(fd_);
+    fd_ = -1;
     return false;
   }
 
@@ -34,23 +35,27 @@ bool BNO055::init()
   if (!expectChipID()) {
     std::cerr << "CHIP_ID mismatch" << '\n';
     close(fd_);
+    fd_ = -1;
     return false;
   }
 
   if(!setUnit()) {
     std::cerr << "SET UNIT failed" << '\n';
     close(fd_);
+    fd_ = -1;
     return false;
   }
 
   if (!expectSetUnit()) {
     std::cerr << "UNIT_SEL verification failed" << '\n';
     close(fd_);
+    fd_ = -1;
     return false;
   }
 
   if (!setOprMode(BNO055Mode::NDOF)) {//センサーをNDOFmodeにする
     close(fd_);
+    fd_ = -1;
     return false;
   }
   std::this_thread::sleep_for(std::chrono::milliseconds(100)); 
@@ -61,7 +66,10 @@ bool BNO055::init()
  
 BNO055::~BNO055()
 {
-    if (fd_ >= 0) close(fd_);
+    if (fd_ >= 0) {
+      close(fd_);
+      fd_ = -1;
+    }
 }
 
  
@@ -285,19 +293,20 @@ bool BNO055::readEuler(std::array<float, 3>& eul_value)
 
 bool BNO055::expectChipID()
   {
-    uint8_t chipID;
+    uint8_t chip_id;
 
-    if (!readReg(BNO055Reg::CHIP_ID, chipID)) return false;
+    if (!readReg(BNO055Reg::CHIP_ID, chip_id)) return false;
 
-    return chipID == EXPECT_CHIP_ID;
+    return chip_id == EXPECT_CHIP_ID;
   }
 
 bool BNO055::setOprMode(BNO055Mode mode)
 {
   if (!writeReg(toUint8(BNO055Reg::OPR_MODE), toUint8(mode))) return false;
-        
+
   std::this_thread::sleep_for(std::chrono::milliseconds(20));
-        uint8_t current_mode;
+
+  uint8_t current_mode;
 
   if (!readReg(BNO055Reg::OPR_MODE, current_mode)) return false;
   if ((current_mode & 0x0F) != toUint8(mode)) return false;
@@ -352,7 +361,7 @@ bool BNO055::readCalibration(CalibrationData &calib_data, bool& imu_ready)
 
 bool BNO055::verifyCalibration(const CalibrationData &calib_data, bool& imu_ready)
 {
-  
+
   CalibrationData calib_data_read;
 
   if (!readCalibration(calib_data_read, imu_ready)) return false;

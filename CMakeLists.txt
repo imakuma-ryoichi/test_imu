@@ -14,7 +14,7 @@ find_package(rclcpp REQUIRED)
 add_executable(bno055_node
   src/bno055.cpp
   src/bno055_config.cpp
-  src/imu_node.cpp
+  src/imu_test.cpp
 )
 
 # ヘッダファイルの場所
