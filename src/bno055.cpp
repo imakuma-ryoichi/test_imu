@@ -15,6 +15,9 @@ BNO055::BNO055(std::string dev, uint8_t addr)
 
 bool BNO055::init() 
   {
+
+  if (fd_ > -1) return false;
+
   fd_ = open(dev_.c_str(), O_RDWR);
     
   if (fd_ == -1) {
