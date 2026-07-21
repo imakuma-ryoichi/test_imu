@@ -1,7 +1,7 @@
 # test_imu(後で詳細追加)
-## Acceleration
-
 **まだyamlファイルからデータの値の変更に対応していません**
+
+## Acceleration
 
 加速度の単位を設定します。
 
