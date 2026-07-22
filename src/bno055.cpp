@@ -16,7 +16,8 @@ BNO055::BNO055(std::string dev, uint8_t addr)
 bool BNO055::init() 
   {
 
-  if (fd_ > -1) return false;
+    //二度読み込み防止
+  if (fd_ >= 0) return false;
 
   fd_ = open(dev_.c_str(), O_RDWR);
     
@@ -168,32 +169,26 @@ int16_t BNO055::combineInt16(uint8_t lsb, uint8_t msb)
     );
 }
 // m/s^2 == /100.0f , mg == /1.0f  
-void BNO055::readIMUData(IMUData& data) 
+bool BNO055::readIMUData(IMUData& data) 
 {
 
   if (!readAcceleration(data.acceleration)) {
-    data.is_valid = false;
-    return;
+    return false;
   }
 
   if (!readGyroscope(data.gyroscope)) {
-    data.is_valid = false;
-    return;
+    return false;
   }
 
   if (!readQuaternion(data.quaternion)) {
-    data.is_valid = false;
-    return;
+    return false;
   }
   
   if (!readEuler(data.euler)) {
-    data.is_valid = false;
-    return;
+    return false;
   }
 
-  data.is_valid = true;
-
-  return;
+  return true;
 }
 
 bool BNO055::readAcceleration(std::array<float, 3>& acc_value) 

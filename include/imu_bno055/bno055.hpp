@@ -33,7 +33,7 @@ public:
   bool readCalibration(CalibrationData &calib_data, bool& imu_ready);
 
   bool isCalib();
-
+  bool readIMUData(IMUData& data);
 private:
   
   static constexpr int MAX_RETRY = 3;
@@ -49,8 +49,6 @@ private:
   bool readReg(BNO055Reg reg, uint8_t& outValue);
 
   bool readRegs(BNO055Reg reg, uint8_t* data, size_t length);
-
-  void readIMUData(IMUData& data);
 
   bool readCalibrationData(CalibrationData &calibData);
 
