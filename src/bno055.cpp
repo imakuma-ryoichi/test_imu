@@ -18,7 +18,6 @@ BNO055::BNO055(const BNO055Config& config)
 
 bool BNO055::init() 
   {
-
     //二度読み込み防止
   if (fd_ >= 0) return false;
 
@@ -188,21 +187,10 @@ int16_t BNO055::combineInt16(uint8_t lsb, uint8_t msb) const noexcept
 bool BNO055::readIMUData(IMUData& data) 
 {
 
-  if (!readAcceleration(data.acceleration)) {
-    return false;
-  }
-
-  if (!readGyroscope(data.gyroscope)) {
-    return false;
-  }
-
-  if (!readQuaternion(data.quaternion)) {
-    return false;
-  }
-  
-  if (!readEuler(data.euler)) {
-    return false;
-  }
+  if (!readAcceleration(data.acceleration)) return false;
+  if (!readGyroscope(data.gyroscope)) return false;
+  if (!readQuaternion(data.quaternion)) return false;
+  if (!readEuler(data.euler)) return false;
 
   return true;
 }
