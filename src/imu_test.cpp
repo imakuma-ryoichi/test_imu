@@ -7,7 +7,11 @@
 
 int main()
 {
-    BNO055 imu("/dev/i2c-5", 0x28); // 使用しているI2Cバス番号に合わせる
+    auto config = loadConfig(
+        "config/bno055.yaml"
+    );
+
+    BNO055 imu(config);
 
     if (!imu.init()) {
         std::cerr << "IMU init failed\n";

@@ -19,7 +19,7 @@ class BNO055
 {
 public:
 
-  BNO055(std::string dev, uint8_t addr);
+  BNO055(const BNO055Config& config);
   ~BNO055();
 
   bool init(); 
@@ -35,6 +35,8 @@ public:
   bool isCalib();
   bool readIMUData(IMUData& data);
 private:
+
+  BNO055Config config_;
   
   static constexpr int MAX_RETRY = 3;
 
@@ -52,10 +54,6 @@ private:
 
   bool readCalibrationData(CalibrationData &calibData);
 
-  std::string dev_;
-
-  uint8_t addr_;
-
   int fd_;
 
   bool setOprMode(BNO055Mode mode);
@@ -68,11 +66,11 @@ private:
 
   bool writeOffset(const std::array<int16_t, 3>& offsetArray, BNO055Reg baseReg);
 
-  bool expectSetUnit();//そのうちinitに追加
+  bool expectSetUnit(const UnitConfig& unit);//そのうちinitに追加
 
-  bool setUnit();
+  bool setUnit(const UnitConfig& unit);
   
-  uint8_t toUnit();
+  uint8_t toUnit(const UnitConfig& unit);
   
   bool expectChipID();
   

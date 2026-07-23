@@ -9,8 +9,9 @@
 #include <cstdint>
 #include <iostream>
 
-BNO055::BNO055(std::string dev, uint8_t addr) 
-  : dev_(dev), addr_(addr), fd_(-1)
+BNO055::BNO055(const BNO055Config& config) 
+  : config_(config),
+    fd_(-1)
   {}
 
 bool BNO055::init() 
@@ -19,14 +20,14 @@ bool BNO055::init()
     //二度読み込み防止
   if (fd_ >= 0) return false;
 
-  fd_ = open(dev_.c_str(), O_RDWR);
+  fd_ = open(config_.device.c_str(), O_RDWR);
     
   if (fd_ == -1) {
     perror("open failed");
     return false; 
   }
     
-  int ret = ioctl(fd_, I2C_SLAVE, addr_);
+  int ret = ioctl(fd_, I2C_SLAVE, config_.address);
 
   if (ret == -1) {
     perror("ioctl failed");
@@ -43,25 +44,37 @@ bool BNO055::init()
     return false;
   }
 
-  if(!setUnit()) {
+  if(!setUnit(config_.unit)) {
     std::cerr << "SET UNIT failed" << '\n';
     close(fd_);
     fd_ = -1;
     return false;
   }
 
-  if (!expectSetUnit()) {
+  if (!expectSetUnit(config_.unit)) {
     std::cerr << "UNIT_SEL verification failed" << '\n';
     close(fd_);
     fd_ = -1;
     return false;
   }
 
-  if (!setOprMode(BNO055Mode::NDOF)) {//センサーをNDOFmodeにする
+  if (!setOprMode(BNO055Mode::CONFIG)) {//センサーをNDOFmodeにする
     close(fd_);
     fd_ = -1;
     return false;
   }
+
+
+  if (!writeCalibration(config_.calibration)) {
+    std::cerr << "Failed to write calibration" << '\n';
+  }
+
+  if (!setOprMode(config_.mode)) {//センサーをNDOFmodeにする
+    close(fd_);
+    fd_ = -1;
+    return false;
+  }
+
   std::this_thread::sleep_for(std::chrono::milliseconds(100)); 
   
   return true;
@@ -107,21 +120,21 @@ bool BNO055::readReg(BNO055Reg reg, uint8_t& out_value)
   }
 
 
-  bool BNO055::setUnit() 
+  bool BNO055::setUnit(const UnitConfig& unit) 
   {
-    uint8_t unit = toUnit();
+    uint8_t val = toUnit(unit);
 
-    return writeReg(toUint8(BNO055Reg::UNIT_SEL), unit);
+    return writeReg(toUint8(BNO055Reg::UNIT_SEL), val);
 
   }
 
-  bool BNO055::expectSetUnit()
+  bool BNO055::expectSetUnit(const UnitConfig& unit)
   {
     uint8_t current;
 
     if (!readReg(BNO055Reg::UNIT_SEL, current)) return false; 
 
-    uint8_t expected = toUnit();
+    uint8_t expected = toUnit(unit);
 
     uint8_t mask =
         ACC_UNIT_MASK |
@@ -132,12 +145,12 @@ bool BNO055::readReg(BNO055Reg reg, uint8_t& out_value)
 
   }
 
-  uint8_t BNO055::toUnit()
+  uint8_t BNO055::toUnit(const UnitConfig& unit)
   {
     return 
-      toUint8(BNO055Unit::EUL_UNIT_RADIANS) |
-      toUint8(BNO055Unit::GYR_UNIT_RPS) |
-      toUint8(BNO055Unit::ACC_UNIT_METER_PER_SECOND_PER_SECOND);
+      toUint8(unit.euler) |
+      toUint8(unit.gyro) |
+      toUint8(unit.acceleration);
   }
 
 bool BNO055::writeInt16(uint8_t lsb_reg, int16_t raw_value)
@@ -331,7 +344,7 @@ bool BNO055::applyCalibration(const CalibrationData &calib_data, bool& imu_ready
 
   bool success = writeCalibration(calib_data);
 
-  if (!setOprMode(BNO055Mode::NDOF)) {
+  if (!setOprMode(config_.mode)) {
     std::cerr << "Error: Failed to restore NDOF mode." << '\n';
     imu_ready = false;
     return false;
@@ -347,7 +360,7 @@ bool BNO055::readCalibration(CalibrationData &calib_data, bool& imu_ready)
 
   bool success = readCalibrationData(calib_data);
 
-  if (!setOprMode(BNO055Mode::NDOF)) {
+  if (!setOprMode(config_.mode)) {
     std::cerr << "Error: Failed to restore NDOF mode." << '\n';
     imu_ready = false;
     return false;
