@@ -1,5 +1,4 @@
 #pragma once
-
 #include <cstdint>
 #include <string>
 #include <array>
@@ -41,13 +40,20 @@ struct CalibrationStatus {//詳細な情報がほしいなら使って
     uint8_t mag;
 };
 
-struct UnitConfig
+
+struct Unit
 {
-    BNO055Unit acceleration;
-    BNO055Unit gyro;
-    BNO055Unit euler;
+    BNO055Unit unit;
+    float scale;
 };
 
+
+struct UnitConfig
+{
+    Unit acceleration;
+    Unit gyro;
+    Unit euler;
+};
 
 struct BNO055Config
 {

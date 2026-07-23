@@ -3,6 +3,8 @@
 #include "imu_bno055/bno055_data.hpp"
 #include "imu_bno055/bno055.hpp"
 #include "imu_bno055/bno055_reg.hpp"
+#include "imu_bno055/bno055_scale.hpp"
+
 #include <thread>
 #include <chrono>
 #include <array>
@@ -145,13 +147,14 @@ bool BNO055::readReg(BNO055Reg reg, uint8_t& out_value)
 
   }
 
-  uint8_t BNO055::toUnit(const UnitConfig& unit)
-  {
+
+uint8_t BNO055::toUnit(const UnitConfig& unit)
+{
     return 
-      toUint8(unit.euler) |
-      toUint8(unit.gyro) |
-      toUint8(unit.acceleration);
-  }
+        toUint8(unit.euler.unit) |
+        toUint8(unit.gyro.unit) |
+        toUint8(unit.acceleration.unit);
+}
 
 bool BNO055::writeInt16(uint8_t lsb_reg, int16_t raw_value)
 {
@@ -207,15 +210,13 @@ bool BNO055::readIMUData(IMUData& data)
 bool BNO055::readAcceleration(std::array<float, 3>& acc_value) 
 {
 
-  constexpr float ACC_SCALE = 1.0f / 100.0f;
-
   std::array<int16_t, 3> raw;
 
   if (!readInt16Array(BNO055Reg::ACC_DATA_X_LSB, raw)) return false;
   
-  acc_value[0] = static_cast<float>(raw[0]) * ACC_SCALE;
-  acc_value[1] = static_cast<float>(raw[1]) * ACC_SCALE;
-  acc_value[2] = static_cast<float>(raw[2]) * ACC_SCALE;
+  acc_value[0] = static_cast<float>(raw[0]) * config_.unit.acceleration.scale;
+  acc_value[1] = static_cast<float>(raw[1]) * config_.unit.acceleration.scale;
+  acc_value[2] = static_cast<float>(raw[2]) * config_.unit.acceleration.scale;
 
   return true;
 }
@@ -250,18 +251,16 @@ bool BNO055::readRegs(BNO055Reg reg, uint8_t* data, size_t length)
 }
 
 
-//Dps == /16.0f, Rps == /900.0f
 bool BNO055::readGyroscope(std::array<float, 3>& gyr_value) 
 {
-  constexpr float GYR_SCALE = 1.0f / 900.0f;
 
   std::array<int16_t, 3> raw;
 
   if (!readInt16Array(BNO055Reg::GYR_DATA_X_LSB, raw)) return false;
 
-  gyr_value[0] = static_cast<float>(raw[0]) * GYR_SCALE;
-  gyr_value[1] = static_cast<float>(raw[1]) * GYR_SCALE;
-  gyr_value[2] = static_cast<float>(raw[2]) * GYR_SCALE;
+  gyr_value[0] = static_cast<float>(raw[0]) * config_.unit.gyro.scale;
+  gyr_value[1] = static_cast<float>(raw[1]) * config_.unit.gyro.scale;
+  gyr_value[2] = static_cast<float>(raw[2]) * config_.unit.gyro.scale;
 
   return true;
 }
@@ -283,19 +282,16 @@ bool BNO055::readQuaternion(std::array<float, 4>& quat_value)
   return true;
 }
 
-// degree /16.0f   radians /900.0f
 bool BNO055::readEuler(std::array<float, 3>& eul_value) 
 {
-  constexpr float EUL_SCALE = 1.0f / 900.0f;
-  //ここの上ymlで追い出すなら使用知らんけど変数名の差異で変更させるだけで行ければ熱そう
 
   std::array<int16_t, 3> raw;
 
   if (!readInt16Array(BNO055Reg::EUL_DATA_X_LSB, raw)) return false;
 
-  eul_value[0] = static_cast<float>(raw[0]) * EUL_SCALE;
-  eul_value[1] = static_cast<float>(raw[1]) * EUL_SCALE;
-  eul_value[2] = static_cast<float>(raw[2]) * EUL_SCALE;
+  eul_value[0] = static_cast<float>(raw[0]) * config_.unit.euler.scale;
+  eul_value[1] = static_cast<float>(raw[1]) * config_.unit.euler.scale;
+  eul_value[2] = static_cast<float>(raw[2]) * config_.unit.euler.scale;
 
   return true;
 }
