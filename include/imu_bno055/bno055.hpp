@@ -22,6 +22,9 @@ public:
   BNO055(const BNO055Config& config);
   ~BNO055();
 
+  BNO055(const BNO055&) = delete;
+  BNO055& operator=(const BNO055&) = delete;
+
   bool init(); 
   bool readAcceleration(std::array<float, 3>& accValue);
   bool readGyroscope(std::array<float, 3>& gyrValue);
@@ -41,7 +44,7 @@ private:
   static constexpr int MAX_RETRY = 3;
 
   template <typename T>
-  constexpr uint8_t toUint8(T value)
+  static constexpr uint8_t toUint8(T value) noexcept
 {
   return static_cast<uint8_t>(value);
 }
@@ -70,13 +73,13 @@ private:
 
   bool setUnit(const UnitConfig& unit);
   
-  uint8_t toUnit(const UnitConfig& unit);
+  uint8_t toUnit(const UnitConfig& unit) const noexcept;
   
   bool expectChipID();
   
   bool readBytes(uint8_t* data, size_t length);
 
-  int16_t combineInt16(uint8_t lsb, uint8_t msb);
+  int16_t combineInt16(uint8_t lsb, uint8_t msb) const noexcept;
 
   bool writeCalibration(const CalibrationData &calibData);
 

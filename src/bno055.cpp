@@ -148,7 +148,7 @@ bool BNO055::readReg(BNO055Reg reg, uint8_t& out_value)
   }
 
 
-uint8_t BNO055::toUnit(const UnitConfig& unit)
+uint8_t BNO055::toUnit(const UnitConfig& unit) const noexcept
 {
     return 
         toUint8(unit.euler.unit) |
@@ -176,7 +176,7 @@ bool BNO055::writeInt16(uint8_t lsb_reg, int16_t raw_value)
 
 }
 
-int16_t BNO055::combineInt16(uint8_t lsb, uint8_t msb)
+int16_t BNO055::combineInt16(uint8_t lsb, uint8_t msb) const noexcept
 {
     return 
       static_cast<int16_t>(
