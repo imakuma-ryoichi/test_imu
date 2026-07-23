@@ -52,9 +52,9 @@ enum class BNO055Reg : uint8_t {
   QUAT_DATA_Z_LSB = 0x26,
 
   //euler data
-  EUL_DATA_X_LSB = 0x1A,
-  EUL_DATA_Y_LSB = 0x1C,
-  EUL_DATA_Z_LSB = 0x1E,
+  EUL_DATA_X_LSB = 0x1A,//yaw
+  EUL_DATA_Y_LSB = 0x1C,//roll
+  EUL_DATA_Z_LSB = 0x1E,//pitch
 
   //Acceleration offset
   ACC_OFFSET_X_LSB = 0x55,
