@@ -198,7 +198,8 @@ bool BNO055::readIMUData(IMUData& data)
 bool BNO055::readAcceleration(std::array<float, 3>& acc_value) 
 {
 
-  auto convertAcc = [scale = config_.unit.acceleration.scale] (int16_t raw) {
+  auto convertAcc = [scale = config_.unit.acceleration.scale](int16_t raw) noexcept
+  {
     return static_cast<float>(raw) * scale;
   };
 
@@ -246,7 +247,8 @@ bool BNO055::readRegs(BNO055Reg reg, uint8_t* data, size_t length)
 bool BNO055::readGyroscope(std::array<float, 3>& gyr_value) 
 {
 
-  auto convertGyro = [scale = config_.unit.gyro.scale] (int16_t raw) {
+  auto convertGyro = [scale = config_.unit.gyro.scale](int16_t raw) noexcept
+  {
     return static_cast<float>(raw) * scale;
   };
 
@@ -266,7 +268,8 @@ bool BNO055::readQuaternion(std::array<float, 4>& quat_value)
 {
   constexpr float QUAT_SCALE = 1.0f / static_cast<float>(1 << 14);
 
-  auto convertQuat = [scale = QUAT_SCALE] (int16_t raw) {
+  auto convertQuat = [scale = QUAT_SCALE](int16_t raw) noexcept
+  {
     return static_cast<float>(raw) * scale;
   };
 
@@ -285,7 +288,8 @@ bool BNO055::readQuaternion(std::array<float, 4>& quat_value)
 bool BNO055::readEuler(std::array<float, 3>& eul_value) 
 {
 
-  auto convertEuler = [scale = config_.unit.euler.scale] (int16_t raw) {
+  auto convertEuler = [scale = config_.unit.euler.scale](int16_t raw) noexcept
+  {
     return static_cast<float>(raw) * scale;
   };
 
