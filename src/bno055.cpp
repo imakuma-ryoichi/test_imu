@@ -198,13 +198,17 @@ bool BNO055::readIMUData(IMUData& data)
 bool BNO055::readAcceleration(std::array<float, 3>& acc_value) 
 {
 
+  auto convertAcc = [scale = config_.unit.acceleration.scale] (int16_t raw) {
+    return static_cast<float>(raw) * scale;
+  };
+
   std::array<int16_t, 3> raw;
 
   if (!readInt16Array(BNO055Reg::ACC_DATA_X_LSB, raw)) return false;
   
-  acc_value[0] = static_cast<float>(raw[0]) * config_.unit.acceleration.scale;
-  acc_value[1] = static_cast<float>(raw[1]) * config_.unit.acceleration.scale;
-  acc_value[2] = static_cast<float>(raw[2]) * config_.unit.acceleration.scale;
+  acc_value[0] = convertAcc(raw[0]);
+  acc_value[1] = convertAcc(raw[1]);
+  acc_value[2] = convertAcc(raw[2]);
 
   return true;
 }
@@ -242,13 +246,17 @@ bool BNO055::readRegs(BNO055Reg reg, uint8_t* data, size_t length)
 bool BNO055::readGyroscope(std::array<float, 3>& gyr_value) 
 {
 
+  auto convertGyro = [scale = config_.unit.gyro.scale] (int16_t raw) {
+    return static_cast<float>(raw) * scale;
+  };
+
   std::array<int16_t, 3> raw;
 
   if (!readInt16Array(BNO055Reg::GYR_DATA_X_LSB, raw)) return false;
 
-  gyr_value[0] = static_cast<float>(raw[0]) * config_.unit.gyro.scale;
-  gyr_value[1] = static_cast<float>(raw[1]) * config_.unit.gyro.scale;
-  gyr_value[2] = static_cast<float>(raw[2]) * config_.unit.gyro.scale;
+  gyr_value[0] = convertGyro(raw[0]);
+  gyr_value[1] = convertGyro(raw[1]);
+  gyr_value[2] = convertGyro(raw[2]);
 
   return true;
 }
@@ -258,14 +266,18 @@ bool BNO055::readQuaternion(std::array<float, 4>& quat_value)
 {
   constexpr float QUAT_SCALE = 1.0f / static_cast<float>(1 << 14);
 
+  auto convertQuat = [scale = QUAT_SCALE] (int16_t raw) {
+    return static_cast<float>(raw) * scale;
+  };
+
   std::array<int16_t, 4> raw;
 
   if (!readInt16Array(BNO055Reg::QUAT_DATA_W_LSB, raw)) return false;
 
-  quat_value[0] = static_cast<float>(raw[0]) * QUAT_SCALE;
-  quat_value[1] = static_cast<float>(raw[1]) * QUAT_SCALE;
-  quat_value[2] = static_cast<float>(raw[2]) * QUAT_SCALE;
-  quat_value[3] = static_cast<float>(raw[3]) * QUAT_SCALE;
+  quat_value[0] = convertQuat(raw[0]);
+  quat_value[1] = convertQuat(raw[1]);
+  quat_value[2] = convertQuat(raw[2]);
+  quat_value[3] = convertQuat(raw[3]);
 
   return true;
 }
@@ -273,13 +285,17 @@ bool BNO055::readQuaternion(std::array<float, 4>& quat_value)
 bool BNO055::readEuler(std::array<float, 3>& eul_value) 
 {
 
+  auto convertEuler = [scale = config_.unit.euler.scale] (int16_t raw) {
+    return static_cast<float>(raw) * scale;
+  };
+
   std::array<int16_t, 3> raw;
 
   if (!readInt16Array(BNO055Reg::EUL_DATA_X_LSB, raw)) return false;
 
-  eul_value[0] = static_cast<float>(raw[0]) * config_.unit.euler.scale;
-  eul_value[1] = static_cast<float>(raw[1]) * config_.unit.euler.scale;
-  eul_value[2] = static_cast<float>(raw[2]) * config_.unit.euler.scale;
+  eul_value[0] = convertEuler(raw[0]);
+  eul_value[1] = convertEuler(raw[1]);
+  eul_value[2] = convertEuler(raw[2]);
 
   return true;
 }
